@@ -1330,7 +1330,11 @@ def _build_ratio_page(df, data, year, level, prov, kab, *,
         hovertemplate="<b>%{x}</b><br>%{y:.2f}%<extra></extra>",
     ))
     apply_chart(age_fig, height=340, no_legend=True)
-    age_fig.update_layout(xaxis_title="Kelompok Usia", yaxis_title=f"{label_short} (%)")
+    age_fig.update_layout(
+        xaxis_title="Kelompok Usia", yaxis_title=f"{label_short} (%)",
+        margin=dict(l=48, r=48, t=48, b=40),
+        xaxis=dict(range=[-0.5, len(age_m) - 0.5]),
+    )
 
     # ── Gender DONUT chart ───────────────────────────────────────────────────
     gen_fig = go.Figure(go.Pie(
@@ -1362,6 +1366,8 @@ def _build_ratio_page(df, data, year, level, prov, kab, *,
     trend_fig.update_layout(
         xaxis_title="Tahun", yaxis_title=f"{label_short} (%)",
         hovermode='x unified',
+        margin=dict(l=48, r=48, t=48, b=40),
+        xaxis=dict(range=[int(t['thn'].min()) - 0.4, int(t['thn'].max()) + 0.4]) if not t.empty else {},
     )
 
     # ── Education bar ────────────────────────────────────────────────────────
@@ -1491,5 +1497,5 @@ def render_epr(year, level, prov, kab):
 
 
 if __name__ == "__main__":
-    app.run(debug=True, port=8050)
-
+    # host='0.0.0.0' allows access from other devices on your local network
+    app.run(debug=True, host='0.0.0.0', port=8050)

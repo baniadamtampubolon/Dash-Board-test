@@ -1584,4 +1584,5 @@ def render_demo_page():
 
 
 if __name__ == "__main__":
-    app.run(debug=True, port=8050)
+    # host='0.0.0.0' allows access from other devices on your local network
+    app.run(debug=True, host='0.0.0.0', port=8060)
