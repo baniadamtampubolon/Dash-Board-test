@@ -10,8 +10,6 @@ import plotly.express as px
 import plotly.graph_objects as go
 import pandas as pd
 import numpy as np
-import datetime
-import re
 
 # ─── App Init ────────────────────────────────────────────────────────────────────
 app = dash.Dash(
@@ -30,38 +28,6 @@ server = app.server
 # ─── Data Loader ─────────────────────────────────────────────────────────────────
 _cache = {}
 
-def fix_ratio(val):
-    if pd.isna(val):
-        return 0.0
-    if isinstance(val, (int, float)):
-        return float(val)
-    if isinstance(val, pd.Timedelta):
-        comps = val.components
-        hours = comps.days * 24 + comps.hours
-        return float(f"{hours}.{comps.minutes:02d}")
-    if isinstance(val, datetime.time):
-        return float(f"{val.hour}.{val.minute:02d}")
-    
-    val_str = str(val).strip()
-    match_days = re.search(r'(\d+)\s*days?,?\s*(\d+):(\d+)(?::(\d+))?', val_str, re.IGNORECASE)
-    if match_days:
-        days = int(match_days.group(1))
-        hours = int(match_days.group(2))
-        mins = int(match_days.group(3))
-        total_hours = days * 24 + hours
-        return float(f"{total_hours}.{mins:02d}")
-    
-    match_time = re.search(r'^(\d+):(\d+)(?::(\d+))?$', val_str)
-    if match_time:
-        hours = int(match_time.group(1))
-        mins = int(match_time.group(2))
-        return float(f"{hours}.{mins:02d}")
-        
-    try:
-        return float(val_str.replace(',', '.'))
-    except (ValueError, TypeError):
-        return 0.0
-
 def load_data(path: str) -> pd.DataFrame:
     if path in _cache:
         return _cache[path]
@@ -70,22 +36,37 @@ def load_data(path: str) -> pd.DataFrame:
     df['lvl_wil'] = df['lvl_wil'].astype(str).str.lower()
     df['nm_prov']   = df['nm_prov'].fillna('NASIONAL')
     df['nm_kabkot'] = df['nm_kabkot'].fillna('-')
+
+    # Normalize all column names to lowercase for consistent lookup
+    df.columns = [c.strip() for c in df.columns]
+
     text_cols = {'thn', 'lvl_wil', 'kd_prov', 'nm_prov', 'kd_kabkot', 'nm_kabkot'}
-    
-    is_ratio = any(x in path for x in ['TPAK', 'TPT', 'EPR'])
-    
     for col in df.columns:
         if col not in text_cols:
-            if is_ratio:
-                df[col] = df[col].apply(fix_ratio)
-            else:
-                df[col] = pd.to_numeric(df[col], errors='coerce').fillna(0)
-    for tc in ['PUK', 'AK', 'PYB', 'PT', 'TPAK', 'TPT', 'EPR']:
+            # Handle both comma and period as decimal separator
+            if df[col].dtype == object:
+                df[col] = df[col].astype(str).str.replace(',', '.', regex=False)
+            df[col] = pd.to_numeric(df[col], errors='coerce').fillna(0)
+
+    # Detect total column — check both uppercase and lowercase variants
+    _total_candidates = ['PUK', 'AK', 'PYB', 'PT', 'TPAK', 'TPT', 'EPR',
+                         'puk', 'ak', 'pyb', 'pt', 'tpak', 'tpt', 'epr']
+    for tc in _total_candidates:
         if tc in df.columns:
-            df['total'] = df[tc]
+            df['total'] = df[tc].astype(float)
             break
+
+    # Also assign jk_lk / jk_pr from lowercase variants if needed
+    for _lk in ['jk_lk', 'JK_LK']:
+        if _lk in df.columns and _lk != 'jk_lk':
+            df['jk_lk'] = df[_lk]
+    for _pr in ['jk_pr', 'JK_PR']:
+        if _pr in df.columns and _pr != 'jk_pr':
+            df['jk_pr'] = df[_pr]
+
     if 'total' not in df.columns and 'jk_lk' in df.columns and 'jk_pr' in df.columns:
         df['total'] = df['jk_lk'] + df['jk_pr']
+
     _cache[path] = df
     return df
 
@@ -439,7 +420,7 @@ def make_sidebar():
         ]),
 
         html.Div(className="sidebar-section", children=[
-            html.Div("Menu Utama", className="sidebar-label"),
+            html.Div("Data Absolut", className="sidebar-label"),
             html.Div(className="sidebar-nav", children=[
                 html.Button(["📊 ", "Ringkasan Eksekutif"], id="nav-main", className="nav-btn active", n_clicks=0),
                 html.Button(["👥 ", "Penduduk Usia Kerja"], id="nav-puk",  className="nav-btn", n_clicks=0),
@@ -447,14 +428,11 @@ def make_sidebar():
                 html.Button(["❌ ", "Pengangguran Terbuka"], id="nav-pt",   className="nav-btn", n_clicks=0),
                 html.Button(["✅ ", "Penduduk Bekerja"],     id="nav-pyb",  className="nav-btn", n_clicks=0),
             ]),
-        ]),
-
-        html.Div(className="sidebar-section", style={"paddingTop": "10px"}, children=[
-            html.Div("Indikator Rasio", className="sidebar-label"),
+            html.Div("Indikator Rasio", className="sidebar-label", style={"marginTop": "8px"}),
             html.Div(className="sidebar-nav", children=[
                 html.Button(["📈 ", "TPAK"], id="nav-tpak", className="nav-btn", n_clicks=0),
-                html.Button(["📉 ", "TPT"], id="nav-tpt_rasio", className="nav-btn", n_clicks=0),
-                html.Button(["📊 ", "EPR"], id="nav-epr", className="nav-btn", n_clicks=0),
+                html.Button(["📉 ", "TPT"],  id="nav-tpt",  className="nav-btn", n_clicks=0),
+                html.Button(["⚖️ ", "EPR"],  id="nav-epr",  className="nav-btn", n_clicks=0),
             ]),
         ]),
 
@@ -520,6 +498,14 @@ def make_sidebar():
     ])
 
 
+# ─── Inject CSS via index_string (html.Style does not exist in Dash) ──────────
+app.index_string = (
+    '<!DOCTYPE html><html><head>'
+    '{%metas%}<title>{%title%}</title>{%favicon%}{%css%}'
+    '<style>' + CUSTOM_CSS + '</style>'
+    '</head><body>{%app_entry%}<footer>{%config%}{%scripts%}{%renderer%}</footer></body></html>'
+)
+
 # ─── Layout ──────────────────────────────────────────────────────────────────────
 app.layout = html.Div([
     dcc.Store(id="store-active-tab", data="main"),
@@ -541,7 +527,7 @@ app.layout = html.Div([
     Output("nav-pt",   "className"),
     Output("nav-pyb",  "className"),
     Output("nav-tpak", "className"),
-    Output("nav-tpt_rasio", "className"),
+    Output("nav-tpt",  "className"),
     Output("nav-epr",  "className"),
     Input("nav-main", "n_clicks"),
     Input("nav-puk",  "n_clicks"),
@@ -549,24 +535,24 @@ app.layout = html.Div([
     Input("nav-pt",   "n_clicks"),
     Input("nav-pyb",  "n_clicks"),
     Input("nav-tpak", "n_clicks"),
-    Input("nav-tpt_rasio", "n_clicks"),
+    Input("nav-tpt",  "n_clicks"),
     Input("nav-epr",  "n_clicks"),
     prevent_initial_call=True,
 )
 def update_active_tab(*_):
     triggered = callback_context.triggered_id
     mapping = {
-        "nav-main": "main", "nav-puk": "puk",
-        "nav-ak": "ak", "nav-pt": "pt", "nav-pyb": "pyb",
-        "nav-tpak": "tpak", "nav-tpt_rasio": "tpt_rasio", "nav-epr": "epr",
+        "nav-main": "main", "nav-puk": "puk", "nav-ak": "ak",
+        "nav-pt": "pt", "nav-pyb": "pyb",
+        "nav-tpak": "tpak", "nav-tpt": "tpt", "nav-epr": "epr",
     }
     tab = mapping.get(triggered, "main")
     classes = {k: "nav-btn" for k in mapping}
     classes[triggered] = "nav-btn active"
     return (tab,
-            classes["nav-main"], classes["nav-puk"],
-            classes["nav-ak"],   classes["nav-pt"],  classes["nav-pyb"],
-            classes["nav-tpak"], classes["nav-tpt_rasio"], classes["nav-epr"])
+            classes["nav-main"], classes["nav-puk"], classes["nav-ak"],
+            classes["nav-pt"],   classes["nav-pyb"],
+            classes["nav-tpak"], classes["nav-tpt"], classes["nav-epr"])
 
 
 # ─── Callbacks: Filter visibility ────────────────────────────────────────────────
@@ -626,17 +612,20 @@ def render_page(tab, year, level, prov, kab):
     if tab == "ak":    return render_ak(year, level, prov, kab)
     if tab == "pt":    return render_pt(year, level, prov, kab)
     if tab == "pyb":   return render_pyb(year, level, prov, kab)
-    if tab == "tpak":  return render_tpak(year, level, prov, kab)
-    if tab == "tpt_rasio": return render_tpt_rasio(year, level, prov, kab)
-    if tab == "epr":   return render_epr(year, level, prov, kab)
+    if tab == "tpak":  return render_rasio(year, level, prov, kab, "tpak")
+    if tab == "tpt":   return render_rasio(year, level, prov, kab, "tpt")
+    if tab == "epr":   return render_rasio(year, level, prov, kab, "epr")
     return html.Div("Pilih menu di sidebar.")
 
 
 # ─── Helpers ─────────────────────────────────────────────────────────────────────
+# NOTE: loc() is defined after render_main (line ~781) — alias here for pages that call early
 def loc_name(level, prov, kab):
     if level == "provinsi":   return prov or "—"
     if level == "kabupaten":  return kab  or "—"
     return "Indonesia"
+
+loc = loc_name  # single canonical helper, both names work
 
 
 def kpi_card(icon, label, value, accent=None, icon_bg=None):
@@ -818,12 +807,6 @@ def render_main(year, level, prov, kab):
                    "fontSize": "12px", "marginTop": "40px"},
         ),
     ])
-
-
-def loc(level, prov, kab):
-    if level == "provinsi":  return prov or "—"
-    if level == "kabupaten": return kab  or "—"
-    return "Indonesia"
 
 
 # ══════════════════════════════════════════════════════════════════════════════════
@@ -1244,8 +1227,318 @@ def render_pyb(year, level, prov, kab):
 
 
 # ══════════════════════════════════════════════════════════════════════════════════
-#  DEMO PAGE (no data)
+#  PAGE: RASIO (TPAK / TPT / EPR) — satu fungsi generik untuk ketiga indikator
 # ══════════════════════════════════════════════════════════════════════════════════
+
+_RASIO_CONFIG = {
+    "tpak": {
+        "file":     "Database/TPAK-2018-2025-ver2.xlsx",
+        "title":    "Tingkat Partisipasi Angkatan Kerja (TPAK)",
+        "subtitle": "Persentase angkatan kerja terhadap penduduk usia kerja (AK / PUK)",
+        "unit":     "TPAK",
+        "kpi_icon": "📈",
+        "color":    "#1353A0",       # blue
+        "fill":     "rgba(19,83,160,0.08)",
+        "gradient": ["#DBEAFE", "#1353A0"],
+        "icon_bg":  "#1353A014",
+        "lk_color": "#3D4FB5",      # indigo
+        "pr_color": "#E91E8C",
+        "bar_label":"TPAK (%)",
+    },
+    "tpt": {
+        "file":     "Database/TPT-2018-2025-ver2.xlsx",
+        "title":    "Tingkat Pengangguran Terbuka (TPT)",
+        "subtitle": "Persentase pengangguran terhadap total angkatan kerja (PT / AK)",
+        "unit":     "TPT",
+        "kpi_icon": "📉",
+        "color":    "#E84545",       # red
+        "fill":     "rgba(232,69,69,0.08)",
+        "gradient": ["#FEEBC8", "#E84545"],
+        "icon_bg":  "#E8454514",
+        "lk_color": "#3D4FB5",
+        "pr_color": "#E91E8C",
+        "bar_label":"TPT (%)",
+    },
+    "epr": {
+        "file":     "Database/EPR-2018-2025-ver2.xlsx",
+        "title":    "Employment to Population Ratio (EPR)",
+        "subtitle": "Persentase penduduk bekerja terhadap penduduk usia kerja (PYB / PUK)",
+        "unit":     "EPR",
+        "kpi_icon": "⚖️",
+        "color":    "#0D9E8A",       # teal
+        "fill":     "rgba(13,158,138,0.08)",
+        "gradient": ["#E6F4F1", "#0D9E8A"],
+        "icon_bg":  "#0D9E8A14",
+        "lk_color": "#3D4FB5",
+        "pr_color": "#E91E8C",
+        "bar_label":"EPR (%)",
+    },
+}
+
+
+def render_rasio(year, level, prov, kab, kind: str):
+    cfg  = _RASIO_CONFIG[kind]
+    df   = load_data(cfg["file"])
+    data = filter_data(df, year, level, prov, kab)
+
+    # ── KPI values ───────────────────────────────────────────────────────────────
+    # Rasio = persentase; dataset berisi 1 baris per wilayah per tahun.
+    # Gunakan .mean() agar aman jika lebih dari 1 baris tersisa setelah filter.
+    v_val  = round(float(data['total'].mean()),  2) if not data.empty else 0.0
+    lk_val = round(float(data['jk_lk'].mean()), 2) if (not data.empty and 'jk_lk' in data.columns) else 0.0
+    pr_val = round(float(data['jk_pr'].mean()), 2) if (not data.empty and 'jk_pr' in data.columns) else 0.0
+
+    # ── Trend line ───────────────────────────────────────────────────────────────
+    # Untuk data rasio, gunakan mean() per tahun (bukan sum)
+    t = trend_filter(df, level, prov, kab).groupby('thn')['total'].mean().reset_index()
+    y_min = max(0.0, float(t['total'].min()) * 0.92) if not t.empty else 0
+    y_max = min(100.0, float(t['total'].max()) * 1.06) if not t.empty else 100
+
+    trend_fig = go.Figure(go.Scatter(
+        x=t['thn'], y=t['total'],
+        mode='lines+markers+text',
+        text=[f"{v:.1f}%" for v in t['total']],
+        textposition='top center',
+        textfont=dict(size=9, color=cfg["color"]),
+        line=dict(color=cfg["color"], width=3, shape='spline'),
+        fill='tozeroy',
+        fillcolor=cfg["fill"],
+        marker=dict(size=7, color=cfg["color"], line=dict(color="#fff", width=1.5)),
+        hovertemplate=f"Tahun %{{x}}<br>{cfg['unit']}: %{{y:.2f}}%<extra></extra>",
+    ))
+    apply_chart(trend_fig, height=300)
+    trend_fig.update_layout(
+        xaxis_title="Tahun",
+        yaxis=dict(
+            title="Persentase (%)",
+            ticksuffix="%",
+            gridcolor="#EEF1F8",
+            range=[y_min, y_max],
+        ),
+        showlegend=False,
+    )
+
+    # ── Gender comparison bar ─────────────────────────────────────────────────────
+    gender_fig = go.Figure()
+    gender_fig.add_trace(go.Bar(
+        x=["Laki-laki", "Perempuan"],
+        y=[lk_val, pr_val],
+        marker_color=[PALETTE["indigo"], "#E91E8C"],
+        text=[f"{lk_val:.2f}%", f"{pr_val:.2f}%"],
+        textposition='outside',
+        textfont=dict(size=12, color=PALETTE["text"]),
+        hovertemplate="<b>%{x}</b><br>%{y:.2f}%<extra></extra>",
+        width=0.45,
+    ))
+    apply_chart(gender_fig, height=260, no_legend=True)
+    gender_fig.update_layout(
+        xaxis_title="",
+        yaxis=dict(title="Persentase (%)", ticksuffix="%", gridcolor="#EEF1F8"),
+        bargap=0.4,
+    )
+
+    # ── Gender trend (lk vs pr) ───────────────────────────────────────────────────
+    t_all      = trend_filter(df, level, prov, kab)
+    has_gender = 'jk_lk' in t_all.columns and 'jk_pr' in t_all.columns
+    gender_trend_fig = go.Figure()
+    if has_gender and not t_all.empty:
+        tg = t_all.groupby('thn')[['jk_lk', 'jk_pr']].mean().reset_index()
+        all_vals  = pd.concat([tg['jk_lk'], tg['jk_pr']])
+        gt_y_min  = max(0.0, float(all_vals.min()) * 0.92)
+        gt_y_max  = min(100.0, float(all_vals.max()) * 1.06)
+        gender_trend_fig.add_trace(go.Scatter(
+            x=tg['thn'], y=tg['jk_lk'], name="Laki-laki",
+            mode='lines+markers',
+            line=dict(color=PALETTE["indigo"], width=2.5, shape='spline'),
+            marker=dict(size=6),
+            hovertemplate="Laki-laki %{x}: %{y:.2f}%<extra></extra>",
+        ))
+        gender_trend_fig.add_trace(go.Scatter(
+            x=tg['thn'], y=tg['jk_pr'], name="Perempuan",
+            mode='lines+markers',
+            line=dict(color="#E91E8C", width=2.5, shape='spline', dash='dash'),
+            marker=dict(size=6),
+            hovertemplate="Perempuan %{x}: %{y:.2f}%<extra></extra>",
+        ))
+    else:
+        gt_y_min, gt_y_max = 0, 100
+    apply_chart(gender_trend_fig, height=260)
+    gender_trend_fig.update_layout(
+        hovermode='x unified',
+        xaxis_title="Tahun",
+        yaxis=dict(
+            title="Persentase (%)",
+            ticksuffix="%",
+            gridcolor="#EEF1F8",
+            range=[gt_y_min, gt_y_max] if has_gender else [0, 100],
+        ),
+    )
+
+    # ── Regional bar (wilayah) ────────────────────────────────────────────────────
+    if level == 'nasional':
+        reg_df   = df[(df['thn'] == year) & (df['lvl_wil'] == 'provinsi')].copy()
+        name_col  = 'nm_prov'
+        reg_title = "Perbandingan Antar Provinsi"
+        reg_sub   = f"15 provinsi dengan {cfg['unit']} tertinggi"
+    elif level == 'provinsi':
+        reg_df   = df[
+            (df['thn'] == year) &
+            (df['lvl_wil'].isin(['kabupaten', 'kota'])) &
+            (df['nm_prov'] == prov)
+        ].copy()
+        name_col  = 'nm_kabkot'
+        reg_title = f"Perbandingan Kabupaten/Kota — {prov}"
+        reg_sub   = f"15 wilayah dengan {cfg['unit']} tertinggi di {prov}"
+    else:
+        # level == kabupaten: tampilkan semua kabkot di provinsi yang sama sebagai konteks
+        reg_df   = df[
+            (df['thn'] == year) &
+            (df['lvl_wil'].isin(['kabupaten', 'kota'])) &
+            (df['nm_prov'] == prov)
+        ].copy()
+        name_col  = 'nm_kabkot'
+        reg_title = f"Konteks Kabupaten/Kota — {prov}"
+        reg_sub   = f"Semua wilayah di {prov}" if prov else "Semua kabupaten/kota"
+
+    if not reg_df.empty and name_col in reg_df.columns and 'total' in reg_df.columns:
+        reg_df = reg_df[[name_col, 'total']].dropna().sort_values('total').tail(15)
+        bar_fig = px.bar(
+            reg_df, x='total', y=name_col, orientation='h',
+            color='total',
+            color_continuous_scale=cfg["gradient"],
+            text=[f"{v:.1f}%" for v in reg_df['total']],
+        )
+        bar_fig.update_traces(
+            textposition='outside',
+            hovertemplate=f"<b>%{{y}}</b><br>{cfg['unit']}: %{{x:.2f}}%<extra></extra>",
+        )
+        bar_fig.update_coloraxes(showscale=False)
+        apply_chart(bar_fig, height=420)
+        bar_fig.update_layout(
+            xaxis=dict(title=cfg["bar_label"], ticksuffix="%"),
+            yaxis_title="",
+        )
+    else:
+        bar_fig = go.Figure()
+        bar_fig.add_annotation(
+            text="Data wilayah tidak tersedia untuk filter ini",
+            xref="paper", yref="paper", x=0.5, y=0.5,
+            showarrow=False, font=dict(size=13, color=PALETTE["muted"]),
+        )
+        apply_chart(bar_fig, height=420)
+
+    # ── Gauge: nilai saat ini vs tahun sebelumnya ─────────────────────────────────
+    # Ambil nilai tahun sebelumnya dari trend untuk delta (selisih poin persentase)
+    t_sorted     = t.sort_values('thn')
+    prev_year_df = t_sorted[t_sorted['thn'] < year]
+    ref_val      = float(prev_year_df['total'].iloc[-1]) if not prev_year_df.empty else v_val
+
+    # Batas gauge dinamis: selalu mulai dari 0, atas = max(100, nilai + 10%)
+    gauge_max = 100.0
+
+    gauge_fig = go.Figure(go.Indicator(
+        mode="gauge+number+delta",
+        value=round(v_val, 2),
+        number=dict(suffix="%", font=dict(size=36, color=cfg["color"]), valueformat=".2f"),
+        delta=dict(
+            reference=ref_val,
+            relative=False,
+            suffix=" pp",
+            valueformat="+.2f",
+            increasing=dict(color=PALETTE["teal"]),
+            decreasing=dict(color=PALETTE["red"]),
+        ),
+        gauge=dict(
+            axis=dict(
+                range=[0, gauge_max],
+                ticksuffix="%",
+                tickfont=dict(size=10),
+                nticks=6,
+            ),
+            bar=dict(color=cfg["color"], thickness=0.28),
+            bgcolor="rgba(0,0,0,0)",
+            borderwidth=0,
+            steps=[
+                dict(range=[0,               gauge_max * 0.33], color="#F4F6FB"),
+                dict(range=[gauge_max * 0.33, gauge_max * 0.66], color="#E8EEF8"),
+                dict(range=[gauge_max * 0.66, gauge_max],        color="#D6E4F5"),
+            ],
+            threshold=dict(
+                line=dict(color=cfg["color"], width=3),
+                thickness=0.75,
+                value=round(v_val, 2),
+            ),
+        ),
+        title=dict(
+            text="{} — {}  <span style='font-size:11px;color:{}'>vs {}</span>".format(
+                cfg["unit"], year, PALETTE["muted"], year - 1
+            ),
+            font=dict(size=13, color=PALETTE["muted"]),
+        ),
+        domain=dict(x=[0, 1], y=[0, 1]),
+    ))
+    apply_chart(gauge_fig, height=280, no_legend=True)
+    gauge_fig.update_layout(margin=dict(l=24, r=24, t=48, b=16))
+
+    # ── Layout ────────────────────────────────────────────────────────────────────
+    return html.Div([
+        html.Div(className="page-header", children=[
+            html.Span(f"📍 {loc(level, prov, kab)}  ·  {year}", className="page-badge"),
+            html.H1(cfg["title"], className="page-title"),
+            html.P(cfg["subtitle"], className="page-subtitle"),
+        ]),
+
+        # Row 1: KPI cards
+        dbc.Row([
+            dbc.Col(kpi_card(
+                cfg["kpi_icon"], cfg["unit"],
+                f"{v_val:.2f}%",
+                cfg["color"], cfg["icon_bg"],
+            ), md=4),
+            dbc.Col(kpi_card(
+                "👨", f"{cfg['unit']} Laki-laki",
+                f"{lk_val:.2f}%",
+                PALETTE["indigo"], f"{PALETTE['indigo']}14",
+            ), md=4),
+            dbc.Col(kpi_card(
+                "👩", f"{cfg['unit']} Perempuan",
+                f"{pr_val:.2f}%",
+                "#E91E8C", "#E91E8C14",
+            ), md=4),
+        ], className="g-3 mb-2"),
+
+        section("Indikator & Perbandingan Gender"),
+        dbc.Row([
+            dbc.Col(chart_card(
+                f"Gauge {cfg['unit']}",
+                f"Nilai {cfg['unit']} tahun {year} vs tahun sebelumnya",
+                gauge_fig,
+            ), md=4),
+            dbc.Col(chart_card(
+                "Perbandingan Gender",
+                f"{cfg['unit']} laki-laki vs perempuan",
+                gender_fig,
+            ), md=4),
+            dbc.Col(chart_card(
+                "Tren Gender 2018–2025",
+                "Perkembangan tahunan per jenis kelamin",
+                gender_trend_fig,
+            ), md=4),
+        ], className="g-3 mb-2"),
+
+        section("Analisis Spasial & Tren Historis"),
+        dbc.Row([
+            dbc.Col(chart_card(reg_title, reg_sub, bar_fig), md=7),
+            dbc.Col(chart_card(
+                f"Tren {cfg['unit']} 2018–2025",
+                f"Perkembangan historis — {loc(level, prov, kab)}",
+                trend_fig,
+            ), md=5),
+        ], className="g-3"),
+    ])
+
+
+
 def render_demo_page():
     np.random.seed(42)
     years = list(range(2018, 2026))
@@ -1290,206 +1583,5 @@ def render_demo_page():
     ])
 
 
-
-# ══════════════════════════════════════════════════════════════════════════════════
-#  HELPER: Reusable ratio page builder
-# ══════════════════════════════════════════════════════════════════════════════════
-def _ratio_val(data, col):
-    """Safely get a single ratio value from filtered data."""
-    if data.empty or col not in data.columns:
-        return 0.0
-    return round(float(data[col].iloc[0]), 2) if len(data) == 1 else round(float(data[col].mean()), 2)
-
-
-def _build_ratio_page(df, data, year, level, prov, kab, *,
-                      ratio_col, title, subtitle, icon, accent, fill_rgba,
-                      color_scale, label_short):
-    """Build a full ratio dashboard mirroring the AK/PT page composition."""
-
-    v_total  = _ratio_val(data, ratio_col)
-    v_lk     = _ratio_val(data, 'jk_lk')
-    v_pr     = _ratio_val(data, 'jk_pr')
-    v_kota   = _ratio_val(data, 'kls_kota')
-    v_desa   = _ratio_val(data, 'kls_desa')
-
-    # ── Age‑group LINE chart ─────────────────────────────────────────────────
-    age_m = {
-        'ku_1519':'15–19', 'ku_2024':'20–24', 'ku_2529':'25–29',
-        'ku_3034':'30–34', 'ku_3539':'35–39', 'ku_4044':'40–44',
-        'ku_4549':'45–49', 'ku_5054':'50–54', 'ku_5559':'55–59',
-        'ku_6064':'60–64', 'ku_65+':'65+',
-    }
-    age_vals = [_ratio_val(data, c) for c in age_m]
-    age_fig = go.Figure(go.Scatter(
-        x=list(age_m.values()), y=age_vals, mode='lines+markers+text',
-        line=dict(color=accent, width=3, shape='spline'),
-        marker=dict(size=8, color=accent, line=dict(color='#fff', width=1.5)),
-        fill='tozeroy', fillcolor=fill_rgba,
-        text=[f"{v:.1f}%" for v in age_vals], textposition='top center',
-        textfont=dict(size=9, color=accent),
-        hovertemplate="<b>%{x}</b><br>%{y:.2f}%<extra></extra>",
-    ))
-    apply_chart(age_fig, height=340, no_legend=True)
-    age_fig.update_layout(xaxis_title="Kelompok Usia", yaxis_title=f"{label_short} (%)")
-
-    # ── Gender DONUT chart ───────────────────────────────────────────────────
-    gen_fig = go.Figure(go.Pie(
-        labels=["Laki-laki", "Perempuan"], values=[v_lk, v_pr],
-        hole=0.6,
-        marker=dict(colors=[PALETTE["blue"], "#F48FB1"]),
-        textinfo='label+percent',
-        textposition='outside',
-        hovertemplate="<b>%{label}</b><br>%{value:.2f}%<extra></extra>",
-    ))
-    gen_fig.add_annotation(
-        text=f"<b>{label_short}</b><br>Gender", x=0.5, y=0.5,
-        font=dict(size=12, color=PALETTE["text"]), showarrow=False,
-    )
-    apply_chart(gen_fig, height=300, no_legend=False)
-
-    # ── Trend line ───────────────────────────────────────────────────────────
-    t = trend_filter(df, level, prov, kab).groupby('thn')[ratio_col].mean().reset_index()
-    trend_fig = go.Figure(go.Scatter(
-        x=t['thn'], y=t[ratio_col], mode='lines+markers+text',
-        line=dict(color=accent, width=3, shape='spline'),
-        fill='tozeroy', fillcolor=fill_rgba,
-        marker=dict(size=8, color=accent, line=dict(color='#fff', width=1.5)),
-        text=[f"{v:.1f}%" for v in t[ratio_col]], textposition='top center',
-        textfont=dict(size=10, color=accent),
-        hovertemplate=f"Tahun %{{x}}: %{{y:.2f}}%<extra></extra>",
-    ))
-    apply_chart(trend_fig, height=340)
-    trend_fig.update_layout(
-        xaxis_title="Tahun", yaxis_title=f"{label_short} (%)",
-        hovermode='x unified',
-    )
-
-    # ── Education bar ────────────────────────────────────────────────────────
-    edu_map = {
-        'pd_sd':'SD', 'pd_smp':'SMP', 'pd_smau':'SMA/MA',
-        'pd_smak':'SMK', 'pd_dipl':'Diploma', 'pd_univ':'Universitas',
-    }
-    edu_vals = [_ratio_val(data, c) for c in edu_map]
-    edu_fig = px.bar(
-        pd.DataFrame({'Pendidikan': list(edu_map.values()), label_short: edu_vals}),
-        x='Pendidikan', y=label_short, color=label_short,
-        color_continuous_scale=color_scale,
-        text=[f"{v:.1f}%" for v in edu_vals],
-    )
-    edu_fig.update_traces(textposition='outside')
-    edu_fig.update_coloraxes(showscale=False)
-    apply_chart(edu_fig, height=300)
-    edu_fig.update_layout(xaxis_title="", yaxis_title=f"{label_short} (%)")
-
-    # ── Kota vs Desa DONUT chart ─────────────────────────────────────────────
-    kd_fig = go.Figure(go.Pie(
-        labels=["Perkotaan", "Perdesaan"], values=[v_kota, v_desa],
-        hole=0.6,
-        marker=dict(colors=[PALETTE["sky"], PALETTE["gold"]]),
-        textinfo='label+percent',
-        textposition='outside',
-        hovertemplate="<b>%{label}</b><br>%{value:.2f}%<extra></extra>",
-    ))
-    kd_fig.add_annotation(
-        text=f"<b>{label_short}</b><br>Wilayah", x=0.5, y=0.5,
-        font=dict(size=12, color=PALETTE["text"]), showarrow=False,
-    )
-    apply_chart(kd_fig, height=300, no_legend=False)
-
-    # ── Assemble page ────────────────────────────────────────────────────────
-    return html.Div([
-        html.Div(className="page-header", children=[
-            html.Span(f"📍 {loc(level,prov,kab)}  ·  {year}", className="page-badge"),
-            html.H1(title, className="page-title"),
-            html.P(subtitle, className="page-subtitle"),
-        ]),
-        dbc.Row([
-            dbc.Col(kpi_card(icon, label_short, f"{v_total:.2f}%",
-                             accent, f"{accent}14"), md=4),
-            dbc.Col(kpi_card("👨", f"{label_short} Laki-laki", f"{v_lk:.2f}%",
-                             PALETTE["indigo"], f"{PALETTE['indigo']}14"), md=4),
-            dbc.Col(kpi_card("👩", f"{label_short} Perempuan", f"{v_pr:.2f}%",
-                             "#E91E8C", "#E91E8C14"), md=4),
-        ], className="g-3 mb-2"),
-
-        section("Profil Demografis"),
-        dbc.Row([
-            dbc.Col(chart_card(f"{label_short} per Kelompok Usia",
-                               "Distribusi rasio berdasarkan kelompok umur", age_fig), md=8),
-            dbc.Col(chart_card("Perbandingan Gender",
-                               f"{label_short} laki-laki vs perempuan", gen_fig), md=4),
-        ], className="g-3 mb-2"),
-
-        section("Pendidikan & Wilayah"),
-        dbc.Row([
-            dbc.Col(chart_card(f"{label_short} per Tingkat Pendidikan", "", edu_fig), md=8),
-            dbc.Col(chart_card("Perkotaan vs Perdesaan",
-                               f"Rasio {label_short} berdasarkan klasifikasi wilayah", kd_fig), md=4),
-        ], className="g-3 mb-2"),
-
-        section(f"Tren Historis {label_short}"),
-        dbc.Row([
-            dbc.Col(chart_card(f"Tren {label_short} 2018–2025",
-                               f"Perkembangan historis — {loc(level,prov,kab)}",
-                               trend_fig), md=12),
-        ], className="g-3"),
-    ])
-
-
-# ══════════════════════════════════════════════════════════════════════════════════
-#  PAGE: TPAK  (rasio dari AK → komposisi mirip render_ak)
-# ══════════════════════════════════════════════════════════════════════════════════
-def render_tpak(year, level, prov, kab):
-    df   = load_data("Database/TPAK-2018-2025-ver2.xlsx")
-    data = filter_data(df, year, level, prov, kab)
-    return _build_ratio_page(
-        df, data, year, level, prov, kab,
-        ratio_col='TPAK',
-        title="Tingkat Partisipasi Angkatan Kerja (TPAK)",
-        subtitle="Persentase angkatan kerja terhadap penduduk usia kerja (AK / PUK)",
-        icon="📈", accent=PALETTE["blue"],
-        fill_rgba="rgba(19,83,160,0.08)",
-        color_scale=["#DBEAFE", PALETTE["blue"]],
-        label_short="TPAK",
-    )
-
-
-# ══════════════════════════════════════════════════════════════════════════════════
-#  PAGE: TPT Rasio  (rasio dari PT → komposisi mirip render_pt)
-# ══════════════════════════════════════════════════════════════════════════════════
-def render_tpt_rasio(year, level, prov, kab):
-    df   = load_data("Database/TPT-2018-2025-ver2.xlsx")
-    data = filter_data(df, year, level, prov, kab)
-    return _build_ratio_page(
-        df, data, year, level, prov, kab,
-        ratio_col='TPT',
-        title="Tingkat Pengangguran Terbuka (TPT)",
-        subtitle="Persentase pengangguran terhadap total angkatan kerja (PT / AK)",
-        icon="📉", accent=PALETTE["red"],
-        fill_rgba="rgba(232,69,69,0.08)",
-        color_scale=["#FEEBC8", PALETTE["red"]],
-        label_short="TPT",
-    )
-
-
-# ══════════════════════════════════════════════════════════════════════════════════
-#  PAGE: EPR  (rasio dari PYB → komposisi mirip render_pyb)
-# ══════════════════════════════════════════════════════════════════════════════════
-def render_epr(year, level, prov, kab):
-    df   = load_data("Database/EPR-2018-2025-ver2.xlsx")
-    data = filter_data(df, year, level, prov, kab)
-    return _build_ratio_page(
-        df, data, year, level, prov, kab,
-        ratio_col='EPR',
-        title="Employment to Population Ratio (EPR)",
-        subtitle="Persentase penduduk bekerja terhadap penduduk usia kerja (PYB / PUK)",
-        icon="📊", accent=PALETTE["teal"],
-        fill_rgba="rgba(13,158,138,0.08)",
-        color_scale=["#E6F4F1", PALETTE["teal"]],
-        label_short="EPR",
-    )
-
-
 if __name__ == "__main__":
     app.run(debug=True, port=8050)
-
