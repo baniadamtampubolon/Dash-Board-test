@@ -19,7 +19,61 @@ def render_pyb(year, level, prov, kab):
     data = filter_data(df, year, level, prov, kab)
     total = int(data['total'].sum())
 
-    # Sektor treemap
+    lk = int(data.get('jk_lk', pd.Series([0])).sum())
+    pr = int(data.get('jk_pr', pd.Series([0])).sum())
+    kota = int(data.get('kls_kota', pd.Series([0])).sum())
+    desa = int(data.get('kls_desa', pd.Series([0])).sum())
+
+    # ── Gender donut ──────────────────────────────────────────────────────────
+    gen_fig = go.Figure(go.Pie(
+        labels=["Laki-laki", "Perempuan"], values=[lk, pr], hole=0.6,
+        marker=dict(colors=[PALETTE["blue"], "#F48FB1"]),
+        textinfo='none', textposition='outside',
+        text=[f"Laki-laki<br>{fmt_compact(lk)}", f"Perempuan<br>{fmt_compact(pr)}"],
+        texttemplate="%{text}",
+        hovertemplate="<b>%{label}</b><br>%{value:,.0f} jiwa<extra></extra>",
+    ))
+    gen_fig.add_annotation(text=f"<b>PYB</b><br>Gender", x=0.5, y=0.5,
+                           font=dict(size=12, color=PALETTE["text"]), showarrow=False)
+    apply_chart(gen_fig, height=300, no_legend=False)
+
+    # ── Kota vs Desa donut ────────────────────────────────────────────────────
+    kd_fig = go.Figure(go.Pie(
+        labels=["Perkotaan", "Perdesaan"], values=[kota, desa], hole=0.6,
+        marker=dict(colors=[PALETTE["sky"], PALETTE["gold"]]),
+        textinfo='none', textposition='outside',
+        text=[f"Perkotaan<br>{fmt_compact(kota)}", f"Perdesaan<br>{fmt_compact(desa)}"],
+        texttemplate="%{text}",
+        hovertemplate="<b>%{label}</b><br>%{value:,.0f} jiwa<extra></extra>",
+    ))
+    kd_fig.add_annotation(text=f"<b>PYB</b><br>Wilayah", x=0.5, y=0.5,
+                          font=dict(size=12, color=PALETTE["text"]), showarrow=False)
+    apply_chart(kd_fig, height=300, no_legend=False)
+
+    # ── Age line chart (jumlah) ───────────────────────────────────────────────
+    age_m = {
+        'ku_1519':'15–19','ku_2024':'20–24','ku_2529':'25–29','ku_3034':'30–34',
+        'ku_3539':'35–39','ku_4044':'40–44','ku_4549':'45–49','ku_5054':'50–54',
+        'ku_5559':'55–59','ku_6064':'60–64','ku_65+':'65+',
+    }
+    age_vals = [int(data[c].sum()) if c in data.columns else 0 for c in age_m]
+    age_fig = go.Figure(go.Scatter(
+        x=list(age_m.values()), y=age_vals, mode='lines+markers+text',
+        line=dict(color=PALETTE["teal"], width=3, shape='spline'),
+        marker=dict(size=8, color=PALETTE["teal"], line=dict(color='#fff', width=1.5)),
+        fill='tozeroy', fillcolor='rgba(13,158,138,0.08)',
+        text=[fmt_compact(v) for v in age_vals], textposition='top center',
+        textfont=dict(size=9, color=PALETTE["teal"]),
+        hovertemplate="<b>%{x}</b><br>%{y:,.0f} jiwa<extra></extra>",
+    ))
+    apply_chart(age_fig, height=340, no_legend=True)
+    age_fig.update_layout(
+        xaxis_title="Kelompok Usia", yaxis_title="Jumlah Jiwa",
+        margin=dict(l=48, r=48, t=48, b=40),
+        xaxis=dict(range=[-0.5, len(age_m) - 0.5]),
+    )
+
+    # ── Sektor treemap ────────────────────────────────────────────────────────
     lapus_map = {
         'lapus_A':'Pertanian','lapus_B':'Pertambangan','lapus_C':'Industri Pengolahan',
         'lapus_D':'Listrik & Gas','lapus_E':'Air & Limbah','lapus_F':'Konstruksi',
@@ -39,7 +93,7 @@ def render_pyb(year, level, prov, kab):
     sektor_tree.update_coloraxes(showscale=False)
     apply_chart(sektor_tree, height=400)
 
-    # Status pekerjaan
+    # ── Status pekerjaan donut ────────────────────────────────────────────────
     sta_map = {
         'sta_1':'Berusaha Sendiri','sta_2':'Buruh Tdk Tetap','sta_3':'Buruh Tetap',
         'sta_4':'Karyawan','sta_5':'Bebas (Tani)','sta_6':'Bebas (Non-Tani)','sta_7':'Keluarga',
@@ -52,7 +106,7 @@ def render_pyb(year, level, prov, kab):
                            hovertemplate="<b>%{label}</b><br>%{value:,.0f}<extra></extra>")
     apply_chart(sta_fig, height=360)
 
-    # Jabatan horizontal
+    # ── Jabatan horizontal ────────────────────────────────────────────────────
     jab_map = {
         'jab_1':'Manajer','jab_2':'Profesional','jab_3':'Teknisi',
         'jab_4':'Tata Usaha','jab_5':'Jasa & Penjualan',
@@ -69,7 +123,7 @@ def render_pyb(year, level, prov, kab):
     apply_chart(jab_fig, height=380)
     jab_fig.update_layout(xaxis_title="", yaxis_title="")
 
-    # Jam kerja
+    # ── Jam kerja ─────────────────────────────────────────────────────────────
     jam_map = {'jam_114':'1–14 jam','jam_1534':'15–34 jam','jam_3540':'35–40 jam',
                'jam_4148':'41–48 jam','jam_>48':'>48 jam'}
     jmv = [int(data[c].sum()) if c in data.columns else 0 for c in jam_map]
@@ -83,17 +137,24 @@ def render_pyb(year, level, prov, kab):
     apply_chart(jam_fig, height=300, no_legend=True)
     jam_fig.update_layout(xaxis_title="", yaxis_title="")
 
-    # Trend
+    # ── Trend (full width) ────────────────────────────────────────────────────
     t = trend_filter(df, level, prov, kab).groupby('thn')['total'].sum().reset_index()
     trend_fig = go.Figure(go.Scatter(
-        x=t['thn'], y=t['total'], mode='lines+markers',
+        x=t['thn'], y=t['total'], mode='lines+markers+text',
         line=dict(color=PALETTE["teal"], width=3, shape='spline'),
         fill='tozeroy', fillcolor='rgba(13,158,138,0.08)',
-        marker=dict(size=7, color=PALETTE["teal"]),
+        marker=dict(size=8, color=PALETTE["teal"], line=dict(color='#fff', width=1.5)),
+        text=[fmt_compact(v) for v in t['total']], textposition='top center',
+        textfont=dict(size=10, color=PALETTE["teal"]),
         hovertemplate="Tahun %{x}: %{y:,.0f}<extra></extra>",
     ))
-    apply_chart(trend_fig, height=300)
-    trend_fig.update_layout(xaxis_title="Tahun", yaxis_title="Jumlah Jiwa")
+    apply_chart(trend_fig, height=340)
+    trend_fig.update_layout(
+        xaxis_title="Tahun", yaxis_title="Jumlah Jiwa",
+        hovermode='x unified',
+        margin=dict(l=48, r=48, t=48, b=40),
+        xaxis=dict(range=[int(t['thn'].min()) - 0.4, int(t['thn'].max()) + 0.4]) if not t.empty else {},
+    )
 
     return html.Div([
         html.Div(className="page-header", children=[
@@ -111,22 +172,29 @@ def render_pyb(year, level, prov, kab):
                              fmt_compact(jmv[-1]) if jmv else "—",
                              PALETTE["gold"], f"{PALETTE['gold']}14"), md=4),
         ], className="g-3 mb-2"),
+
+        section("Profil Demografis"),
+        dbc.Row([
+            dbc.Col(chart_card("Perbandingan Gender", "Jumlah PYB laki-laki vs perempuan", gen_fig), md=4),
+            dbc.Col(chart_card("Perkotaan vs Perdesaan", "Jumlah PYB berdasarkan klasifikasi wilayah", kd_fig), md=4),
+            dbc.Col(chart_card("PYB per Kelompok Usia", "Distribusi jumlah berdasarkan umur", age_fig), md=4),
+        ], className="g-3 mb-2"),
+
         section("Distribusi Sektor & Status"),
         dbc.Row([
             dbc.Col(chart_card("Lapangan Usaha (Treemap)", "Proporsi berdasarkan sektor pekerjaan", sektor_tree), md=8),
             dbc.Col(chart_card("Status Pekerjaan", "", sta_fig), md=4),
         ], className="g-3 mb-2"),
+
         section("Jabatan & Jam Kerja"),
         dbc.Row([
             dbc.Col(chart_card("Distribusi Jabatan / Jenis Pekerjaan", "", jab_fig), md=6),
-            dbc.Col(html.Div(className="chart-card", children=[
-                html.Div("Jam Kerja per Minggu", className="chart-card-title"),
-                html.Div("Distribusi durasi kerja per minggu", className="chart-card-sub"),
-                dcc.Graph(figure=jam_fig, config={"displayModeBar": False}),
-                html.Hr(style={"margin": "0 20px", "borderColor": PALETTE["border"]}),
-                html.Div("Tren 2018–2025", className="chart-card-title"),
-                dcc.Graph(figure=trend_fig, config={"displayModeBar": False}),
-            ]), md=6),
+            dbc.Col(chart_card("Jam Kerja per Minggu", "Distribusi durasi kerja per minggu", jam_fig), md=6),
+        ], className="g-3 mb-2"),
+
+        section("Tren Historis Penduduk Bekerja"),
+        dbc.Row([
+            dbc.Col(chart_card("Tren PYB 2018–2025",
+                               f"Perkembangan historis — {loc(level,prov,kab)}", trend_fig), md=12),
         ], className="g-3"),
     ])
-

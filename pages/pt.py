@@ -24,15 +24,19 @@ def render_pt(year, level, prov, kab):
     v_ak   = int(data_ak['total'].sum())
     tpr    = round(total / v_ak * 100, 2) if v_ak > 0 else 0
 
+    lk = int(data.get('jk_lk', pd.Series([0])).sum())
+    pr = int(data.get('jk_pr', pd.Series([0])).sum())
+    kota = int(data.get('kls_kota', pd.Series([0])).sum())
+    desa = int(data.get('kls_desa', pd.Series([0])).sum())
+
+    # ── Kategori PT bar ──────────────────────────────────────────────────────
     pt_map  = {'kat_mp':'Mencari Pekerjaan','kat_mu':'Mempersiapkan Usaha','kat_pa':'Putus Asa','kat_bmb':'Diterima Belum Bekerja'}
     pt_vals = [int(data[c].sum()) if c in data.columns else 0 for c in pt_map]
     ptdf    = pd.DataFrame({'Kategori': list(pt_map.values()), 'Jumlah': pt_vals})
 
-    # Horizontal diverging bar for categories
     cat_fig = px.bar(
         ptdf.sort_values('Jumlah'), x='Jumlah', y='Kategori', orientation='h',
-        color='Jumlah',
-        color_continuous_scale=["#FEEBC8", PALETTE["gold"], PALETTE["red"]],
+        color='Jumlah', color_continuous_scale=["#FEEBC8", PALETTE["gold"], PALETTE["red"]],
         text=[fmt_compact(v) for v in ptdf.sort_values('Jumlah')['Jumlah']],
     )
     cat_fig.update_traces(textposition='outside')
@@ -40,10 +44,57 @@ def render_pt(year, level, prov, kab):
     apply_chart(cat_fig, height=300)
     cat_fig.update_layout(xaxis_title="", yaxis_title="")
 
-    # Sunburst: cat + gender breakdown
-    lk_vals = [int(data.get('jk_lk', pd.Series([0])).sum()) // max(1, len(pt_map))] * len(pt_map)
-    pr_vals = [int(data.get('jk_pr', pd.Series([0])).sum()) // max(1, len(pt_map))] * len(pt_map)
-    sun_labels = ["Pengangguran"] + list(pt_map.values()) * 1
+    # ── Gender donut ──────────────────────────────────────────────────────────
+    gen_fig = go.Figure(go.Pie(
+        labels=["Laki-laki", "Perempuan"], values=[lk, pr], hole=0.6,
+        marker=dict(colors=[PALETTE["blue"], "#F48FB1"]),
+        textinfo='none', textposition='outside',
+        text=[f"Laki-laki<br>{fmt_compact(lk)}", f"Perempuan<br>{fmt_compact(pr)}"],
+        texttemplate="%{text}",
+        hovertemplate="<b>%{label}</b><br>%{value:,.0f} jiwa<extra></extra>",
+    ))
+    gen_fig.add_annotation(text=f"<b>PT</b><br>Gender", x=0.5, y=0.5,
+                           font=dict(size=12, color=PALETTE["text"]), showarrow=False)
+    apply_chart(gen_fig, height=300, no_legend=False)
+
+    # ── Kota vs Desa donut ────────────────────────────────────────────────────
+    kd_fig = go.Figure(go.Pie(
+        labels=["Perkotaan", "Perdesaan"], values=[kota, desa], hole=0.6,
+        marker=dict(colors=[PALETTE["sky"], PALETTE["gold"]]),
+        textinfo='none', textposition='outside',
+        text=[f"Perkotaan<br>{fmt_compact(kota)}", f"Perdesaan<br>{fmt_compact(desa)}"],
+        texttemplate="%{text}",
+        hovertemplate="<b>%{label}</b><br>%{value:,.0f} jiwa<extra></extra>",
+    ))
+    kd_fig.add_annotation(text=f"<b>PT</b><br>Wilayah", x=0.5, y=0.5,
+                          font=dict(size=12, color=PALETTE["text"]), showarrow=False)
+    apply_chart(kd_fig, height=300, no_legend=False)
+
+    # ── Age line chart (jumlah) ───────────────────────────────────────────────
+    age_m = {
+        'ku_1519':'15–19','ku_2024':'20–24','ku_2529':'25–29','ku_3034':'30–34',
+        'ku_3539':'35–39','ku_4044':'40–44','ku_4549':'45–49','ku_5054':'50–54',
+        'ku_5559':'55–59','ku_6064':'60–64',
+    }
+    age_vals = [int(data[c].sum()) if c in data.columns else 0 for c in age_m]
+    age_fig = go.Figure(go.Scatter(
+        x=list(age_m.values()), y=age_vals, mode='lines+markers+text',
+        line=dict(color=PALETTE["red"], width=3, shape='spline'),
+        marker=dict(size=8, color=PALETTE["red"], line=dict(color='#fff', width=1.5)),
+        fill='tozeroy', fillcolor='rgba(232,69,69,0.08)',
+        text=[fmt_compact(v) for v in age_vals], textposition='top center',
+        textfont=dict(size=9, color=PALETTE["red"]),
+        hovertemplate="<b>%{x}</b><br>%{y:,.0f} jiwa<extra></extra>",
+    ))
+    apply_chart(age_fig, height=340, no_legend=True)
+    age_fig.update_layout(
+        xaxis_title="Kelompok Usia", yaxis_title="Jumlah Jiwa",
+        margin=dict(l=48, r=48, t=48, b=40),
+        xaxis=dict(range=[-0.5, len(age_m) - 0.5]),
+    )
+
+    # ── Sunburst proporsi kategori ────────────────────────────────────────────
+    sun_labels = ["Pengangguran"] + list(pt_map.values())
     sun_parents = [""] + ["Pengangguran"] * len(pt_map)
     sun_vals   = [total] + pt_vals
     sun_fig = go.Figure(go.Sunburst(
@@ -55,7 +106,7 @@ def render_pt(year, level, prov, kab):
     ))
     apply_chart(sun_fig, height=340, no_legend=True)
 
-    # Trend multi-line
+    # ── Trend (full width) ────────────────────────────────────────────────────
     ts = trend_filter(df, level, prov, kab)
     cols_pt = [c for c in ['total','kat_mp','kat_mu','kat_pa','kat_bmb'] if c in ts.columns]
     ts_g = ts.groupby('thn')[cols_pt].sum().reset_index()
@@ -65,27 +116,15 @@ def render_pt(year, level, prov, kab):
     for col, clr, lbl in zip(cols_pt, colors_pt, labels_pt):
         trend_fig.add_trace(go.Scatter(
             x=ts_g['thn'], y=ts_g[col], name=lbl, mode='lines+markers',
-            line=dict(color=clr, width=2.5 if col=='total' else 1.8, shape='spline'),
-            marker=dict(size=5),
+            line=dict(color=clr, width=3 if col=='total' else 2, shape='spline'),
+            marker=dict(size=6, color=clr, line=dict(color='#fff', width=1)),
+            hovertemplate=f"<b>{lbl}</b>: %{{y:,.0f}}<extra></extra>",
         ))
-    apply_chart(trend_fig, height=360)
-    trend_fig.update_layout(hovermode='x unified', xaxis_title="Tahun")
-
-    # Age + gender
-    age_m = {'ku_1519':'15–19','ku_2024':'20–24','ku_2529':'25–29','ku_3034':'30–34',
-              'ku_3539':'35–39','ku_4044':'40–44','ku_4549':'45–49','ku_5054':'50–54',
-              'ku_5559':'55–59','ku_6064':'60–64'}
-    age_vals = [int(data[c].sum()) if c in data.columns else 0 for c in age_m]
-    age_fig = px.area(
-        pd.DataFrame({'Usia': list(age_m.values()), 'Jumlah': age_vals}),
-        x='Usia', y='Jumlah', markers=True, color_discrete_sequence=[PALETTE["red"]],
+    apply_chart(trend_fig, height=340)
+    trend_fig.update_layout(
+        hovermode='x unified', xaxis_title="Tahun", yaxis_title="Jumlah Jiwa",
+        margin=dict(l=48, r=48, t=48, b=40),
     )
-    age_fig.update_traces(
-        fillcolor='rgba(232,69,69,0.1)', line_width=2.5,
-        hovertemplate="<b>%{x}</b><br>%{y:,.0f}<extra></extra>",
-    )
-    apply_chart(age_fig, height=300)
-    age_fig.update_layout(xaxis_title="", yaxis_title="")
 
     return html.Div([
         html.Div(className="page-header", children=[
@@ -95,20 +134,28 @@ def render_pt(year, level, prov, kab):
         ]),
         dbc.Row([
             dbc.Col(kpi_card("❌", "Total Pengangguran",    fmt_compact(total), PALETTE["red"],  f"{PALETTE['red']}14"),   md=4),
-            dbc.Col(kpi_card("📊", "TPT (Tingkat Pengangguran Terbuka)", f"{tpr}%",              PALETTE["gold"], f"{PALETTE['gold']}14"), md=4),
+            dbc.Col(kpi_card("📊", "TPT", f"{tpr}%", PALETTE["gold"], f"{PALETTE['gold']}14"), md=4),
             dbc.Col(kpi_card("🔍", "Mencari Pekerjaan",
                              fmt_compact(pt_vals[0]) if pt_vals else "—",
                              PALETTE["navy"], f"{PALETTE['navy']}14"), md=4),
         ], className="g-3 mb-2"),
+
         section("Distribusi Pengangguran"),
         dbc.Row([
-            dbc.Col(chart_card("Kategori Pengangguran", "", cat_fig), md=7),
-            dbc.Col(chart_card("Proporsi Kategori", "", sun_fig), md=5),
+            dbc.Col(chart_card("Kategori Pengangguran", "Berdasarkan alasan menganggur", cat_fig), md=4),
+            dbc.Col(chart_card("Perbandingan Gender", "Jumlah PT laki-laki vs perempuan", gen_fig), md=4),
+            dbc.Col(chart_card("Perkotaan vs Perdesaan", "Jumlah PT berdasarkan klasifikasi wilayah", kd_fig), md=4),
         ], className="g-3 mb-2"),
-        section("Usia & Tren"),
+
+        section("Profil Usia & Proporsi"),
         dbc.Row([
-            dbc.Col(chart_card("Profil Usia Pengangguran", "", age_fig), md=5),
-            dbc.Col(chart_card("Tren Pengangguran 2018–2025", "", trend_fig), md=7),
+            dbc.Col(chart_card("PT per Kelompok Usia", "Distribusi jumlah berdasarkan kelompok umur", age_fig), md=8),
+            dbc.Col(chart_card("Proporsi Kategori", "Breakdown pengangguran", sun_fig), md=4),
+        ], className="g-3 mb-2"),
+
+        section("Tren Historis Pengangguran"),
+        dbc.Row([
+            dbc.Col(chart_card("Tren Pengangguran 2018–2025",
+                               f"Perkembangan historis — {loc(level,prov,kab)}", trend_fig), md=12),
         ], className="g-3"),
     ])
-
