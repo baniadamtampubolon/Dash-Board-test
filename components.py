@@ -36,6 +36,7 @@ def make_sidebar():
             html.Div(className="sidebar-nav", children=[
                 html.Button(["📊 ", "Ringkasan Eksekutif"], id="nav-main", className="nav-btn active", n_clicks=0),
                 html.Button(["🗺️ ", "Peta Sebaran"],        id="nav-geomap", className="nav-btn", n_clicks=0),
+                html.Button(["⚠️ ", "Early Warning System"], id="nav-ews",    className="nav-btn", n_clicks=0),
                 html.Button(["👥 ", "Penduduk Usia Kerja"], id="nav-puk",  className="nav-btn", n_clicks=0),
                 html.Button(["💼 ", "Angkatan Kerja"],       id="nav-ak",   className="nav-btn", n_clicks=0),
                 html.Button(["❌ ", "Pengangguran Terbuka"], id="nav-pt",   className="nav-btn", n_clicks=0),

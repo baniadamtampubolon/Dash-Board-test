@@ -14,6 +14,7 @@ from components import make_sidebar
 
 from pages.main   import render_main
 from pages.geomap import render_geomap, register_geomap_callbacks
+from pages.ews    import render_ews, register_ews_callbacks
 from pages.puk    import render_puk
 from pages.ak     import render_ak
 from pages.pt     import render_pt
@@ -53,6 +54,7 @@ app.layout = html.Div([
     Output("store-active-tab", "data"),
     Output("nav-main",   "className"),
     Output("nav-geomap", "className"),
+    Output("nav-ews",    "className"),
     Output("nav-puk",    "className"),
     Output("nav-ak",     "className"),
     Output("nav-pt",     "className"),
@@ -62,6 +64,7 @@ app.layout = html.Div([
     Output("nav-epr",    "className"),
     Input("nav-main",   "n_clicks"),
     Input("nav-geomap", "n_clicks"),
+    Input("nav-ews",    "n_clicks"),
     Input("nav-puk",    "n_clicks"),
     Input("nav-ak",     "n_clicks"),
     Input("nav-pt",     "n_clicks"),
@@ -74,7 +77,7 @@ app.layout = html.Div([
 def update_active_tab(*_):
     triggered = callback_context.triggered_id
     mapping = {
-        "nav-main": "main", "nav-geomap": "geomap", "nav-puk": "puk",
+        "nav-main": "main", "nav-geomap": "geomap", "nav-ews": "ews", "nav-puk": "puk",
         "nav-ak": "ak", "nav-pt": "pt", "nav-pyb": "pyb",
         "nav-tpak": "tpak", "nav-tpt_rasio": "tpt_rasio", "nav-epr": "epr",
     }
@@ -82,7 +85,7 @@ def update_active_tab(*_):
     classes = {k: "nav-btn" for k in mapping}
     classes[triggered] = "nav-btn active"
     return (tab,
-            classes["nav-main"], classes["nav-geomap"], classes["nav-puk"],
+            classes["nav-main"], classes["nav-geomap"], classes["nav-ews"], classes["nav-puk"],
             classes["nav-ak"],   classes["nav-pt"],  classes["nav-pyb"],
             classes["nav-tpak"], classes["nav-tpt_rasio"], classes["nav-epr"])
 
@@ -142,6 +145,7 @@ def render_page(tab, year, level, prov, kab):
 
     if tab == "main":     return render_main(year, level, prov, kab)
     if tab == "geomap":   return render_geomap(year, level, prov, kab)
+    if tab == "ews":      return render_ews(year, level, prov, kab)
     if tab == "puk":      return render_puk(year, level, prov, kab)
     if tab == "ak":       return render_ak(year, level, prov, kab)
     if tab == "pt":       return render_pt(year, level, prov, kab)
@@ -154,6 +158,7 @@ def render_page(tab, year, level, prov, kab):
 
 # ─── Register additional callbacks from pages ────────────────────────────────────
 register_geomap_callbacks(app)
+register_ews_callbacks(app)
 
 
 if __name__ == "__main__":

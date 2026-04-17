@@ -249,3 +249,30 @@ body {
 
 /* Loading overlay */
 ._dash-loading-callback { opacity: 0.6; }
+
+/* ── EWS Toggle ── */
+.ews-toggle .form-check {
+    padding: 0;
+    margin: 0;
+}
+.ews-toggle .form-check-input {
+    display: none;
+}
+.ews-toggle .form-check-label {
+    background: rgba(19, 83, 160, 0.06);
+    border: 1px solid #E2E8F3;
+    border-radius: 10px;
+    padding: 7px 16px;
+    font-size: 13px;
+    font-weight: 500;
+    color: #7A8BAA;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+.ews-toggle .form-check-input:checked + .form-check-label {
+    background: #1353A0;
+    color: #fff;
+    border-color: #1353A0;
+    font-weight: 600;
+    box-shadow: 0 2px 8px rgba(19, 83, 160, 0.25);
+}
