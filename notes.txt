@@ -1,0 +1,3 @@
+icon:
+male = import { IoIosMale } from "react-icons/io";
+female = import { IoMdFemale } from "react-icons/io";

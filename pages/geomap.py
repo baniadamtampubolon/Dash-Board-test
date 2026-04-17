@@ -32,7 +32,7 @@ def render_geomap(year, level, prov, kab):
     ]
     return html.Div([
         html.Div(className="page-header", children=[
-            html.Span(f"📅 {year}", className="page-badge"),
+            html.Span(f"{year}", className="page-badge"),
             html.H1("Peta Sebaran Ketenagakerjaan", className="page-title"),
             html.P("Distribusi indikator ketenagakerjaan per provinsi di seluruh Indonesia", className="page-subtitle"),
         ]),
@@ -134,7 +134,7 @@ def register_geomap_callbacks(app):
         bot3 = sorted_prov.tail(3).sort_values('value', ascending=True)
     
         top_cards = []
-        top_icons  = ["🥇", "🥈", "🥉"]
+        top_icons  = ["1st", "2nd", "3rd"]
         top_colors = [PALETTE["teal"], PALETTE["blue"], PALETTE["indigo"]]
         for i, (_, row) in enumerate(top3.iterrows()):
             top_cards.append(
@@ -174,10 +174,10 @@ def register_geomap_callbacks(app):
             # Top / Bottom KPIs (ban chart — di atas)
             section("Top & Bottom Provinsi"),
             dbc.Row([
-                dbc.Col(html.Div("🏆 Tertinggi", style={
+                dbc.Col(html.Div("Tertinggi", style={
                     "fontSize": "12px", "fontWeight": "700", "color": PALETTE["teal"],
                     "marginBottom": "8px", "letterSpacing": "0.5px"}), md=6),
-                dbc.Col(html.Div("📉 Terendah", style={
+                dbc.Col(html.Div("Terendah", style={
                     "fontSize": "12px", "fontWeight": "700", "color": PALETTE["gold"],
                     "marginBottom": "8px", "letterSpacing": "0.5px"}), md=6),
             ]),

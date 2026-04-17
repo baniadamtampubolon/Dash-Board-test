@@ -158,17 +158,17 @@ def render_pyb(year, level, prov, kab):
 
     return html.Div([
         html.Div(className="page-header", children=[
-            html.Span(f"📍 {loc(level,prov,kab)}  ·  {year}", className="page-badge"),
+            html.Span(f"{loc(level,prov,kab)}  ·  {year}", className="page-badge"),
             html.H1("Penduduk yang Bekerja (PYB)", className="page-title"),
             html.P("Analisis mendalam profil pekerjaan, sektor, dan jabatan", className="page-subtitle"),
         ]),
         dbc.Row([
-            dbc.Col(kpi_card("✅", "Total Penduduk Bekerja", fmt_compact(total),
+            dbc.Col(kpi_card("PYB", "Total Penduduk Bekerja", fmt_compact(total),
                              PALETTE["teal"], f"{PALETTE['teal']}14"), md=4),
-            dbc.Col(kpi_card("🏭", "Sektor Terbesar",
+            dbc.Col(kpi_card("S1", "Sektor Terbesar",
                              ldf.sort_values('Jumlah').iloc[-1]['Sektor'] if not ldf.empty else "—",
                              PALETTE["blue"], f"{PALETTE['blue']}14"), md=4),
-            dbc.Col(kpi_card("⏱️", "Pekerja >48 jam/minggu",
+            dbc.Col(kpi_card("48+", "Pekerja >48 jam/minggu",
                              fmt_compact(jmv[-1]) if jmv else "—",
                              PALETTE["gold"], f"{PALETTE['gold']}14"), md=4),
         ], className="g-3 mb-2"),

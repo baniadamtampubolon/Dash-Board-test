@@ -128,14 +128,14 @@ def render_pt(year, level, prov, kab):
 
     return html.Div([
         html.Div(className="page-header", children=[
-            html.Span(f"📍 {loc(level,prov,kab)}  ·  {year}", className="page-badge"),
+            html.Span(f"{loc(level,prov,kab)}  ·  {year}", className="page-badge"),
             html.H1("Pengangguran Terbuka (PT)", className="page-title"),
             html.P("Analisis kondisi dan karakteristik pengangguran", className="page-subtitle"),
         ]),
         dbc.Row([
-            dbc.Col(kpi_card("❌", "Total Pengangguran",    fmt_compact(total), PALETTE["red"],  f"{PALETTE['red']}14"),   md=4),
-            dbc.Col(kpi_card("📊", "TPT", f"{tpr}%", PALETTE["gold"], f"{PALETTE['gold']}14"), md=4),
-            dbc.Col(kpi_card("🔍", "Mencari Pekerjaan",
+            dbc.Col(kpi_card("PT", "Total Pengangguran",    fmt_compact(total), PALETTE["red"],  f"{PALETTE['red']}14"),   md=4),
+            dbc.Col(kpi_card("%",  "TPT", f"{tpr}%", PALETTE["gold"], f"{PALETTE['gold']}14"), md=4),
+            dbc.Col(kpi_card("MP", "Mencari Pekerjaan",
                              fmt_compact(pt_vals[0]) if pt_vals else "—",
                              PALETTE["navy"], f"{PALETTE['navy']}14"), md=4),
         ], className="g-3 mb-2"),

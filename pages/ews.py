@@ -257,8 +257,8 @@ def render_ews(year, level, prov, kab):
 
     return html.Div([
         html.Div(className="page-header", children=[
-            html.Span(f"📍 {scope_label}  ·  📅 {year}", className="page-badge"),
-            html.H1("⚠️ Early Warning System", className="page-title"),
+            html.Span(f"{scope_label}  ·  {year}", className="page-badge"),
+            html.H1("Early Warning System", className="page-title"),
             html.P(
                 f"Top 10 {sub_label} per kategori indikator ketenagakerjaan",
                 className="page-subtitle",

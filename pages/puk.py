@@ -124,15 +124,15 @@ def render_puk(year, level, prov, kab):
 
     return html.Div([
         html.Div(className="page-header", children=[
-            html.Span(f"📍 {loc(level,prov,kab)}  ·  {year}", className="page-badge"),
+            html.Span(f"{loc(level,prov,kab)}  ·  {year}", className="page-badge"),
             html.H1("Penduduk Usia Kerja (PUK)", className="page-title"),
             html.P("Distribusi demografis penduduk usia 15 tahun ke atas", className="page-subtitle"),
         ]),
         dbc.Row([
-            dbc.Col(kpi_card("👥", "Total PUK",            fmt_compact(total),    PALETTE["blue"],   f"{PALETTE['blue']}14"),  md=3),
-            dbc.Col(kpi_card("✅", "Penduduk Bekerja",     fmt_compact(working),  PALETTE["teal"],   f"{PALETTE['teal']}14"),  md=3),
-            dbc.Col(kpi_card("❌", "Pengangguran Terbuka", fmt_compact(unemployed),PALETTE["red"],   f"{PALETTE['red']}14"),   md=3),
-            dbc.Col(kpi_card("🏠", "Bukan Angkatan Kerja", fmt_compact(bak),      PALETTE["muted"],  "#7A8BAA14"),              md=3),
+            dbc.Col(kpi_card("PUK", "Total PUK",            fmt_compact(total),    PALETTE["blue"],   f"{PALETTE['blue']}14"),  md=3),
+            dbc.Col(kpi_card("PYB", "Penduduk Bekerja",     fmt_compact(working),  PALETTE["teal"],   f"{PALETTE['teal']}14"),  md=3),
+            dbc.Col(kpi_card("PT",  "Pengangguran Terbuka", fmt_compact(unemployed),PALETTE["red"],   f"{PALETTE['red']}14"),   md=3),
+            dbc.Col(kpi_card("BAK", "Bukan Angkatan Kerja", fmt_compact(bak),      PALETTE["muted"],  "#7A8BAA14"),              md=3),
         ], className="g-3 mb-2"),
 
         section("Profil Demografis"),

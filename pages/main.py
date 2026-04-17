@@ -115,19 +115,19 @@ def render_main(year, level, prov, kab):
 
     return html.Div([
         html.Div(className="page-header", children=[
-            html.Span(f"📍 {loc(level,prov,kab)}  ·  📅 {year}", className="page-badge"),
+            html.Span(f"{loc(level,prov,kab)}  ·  {year}", className="page-badge"),
             html.H1("Ringkasan Eksekutif Ketenagakerjaan", className="page-title"),
             html.P("Gambaran menyeluruh kondisi ketenagakerjaan nasional", className="page-subtitle"),
         ]),
 
         dbc.Row([
-            dbc.Col(kpi_card("👥", "Penduduk Usia Kerja", f"{fmt_compact(v_puk)}",
+            dbc.Col(kpi_card("PUK", "Penduduk Usia Kerja", f"{fmt_compact(v_puk)}",
                              PALETTE["indigo"], f"{PALETTE['indigo']}14"), md=3),
-            dbc.Col(kpi_card("💼", "Angkatan Kerja", f"{fmt_compact(v_ak)}  ({tpak:.1f}%)",
+            dbc.Col(kpi_card("AK", "Angkatan Kerja", f"{fmt_compact(v_ak)}  ({tpak:.1f}%)",
                              PALETTE["blue"], f"{PALETTE['blue']}14"), md=3),
-            dbc.Col(kpi_card("✅", "Penduduk Bekerja", fmt_compact(v_pyb),
+            dbc.Col(kpi_card("PYB", "Penduduk Bekerja", fmt_compact(v_pyb),
                              PALETTE["teal"], f"{PALETTE['teal']}14"), md=3),
-            dbc.Col(kpi_card("❌", "Pengangguran Terbuka", f"{fmt_compact(v_pt)}  (TPT {tpr}%)",
+            dbc.Col(kpi_card("PT", "Pengangguran Terbuka", f"{fmt_compact(v_pt)}  (TPT {tpr}%)",
                              PALETTE["red"], f"{PALETTE['red']}14"), md=3),
         ], className="g-3 mb-2"),
 

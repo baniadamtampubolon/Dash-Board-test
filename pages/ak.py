@@ -108,14 +108,14 @@ def render_ak(year, level, prov, kab):
 
     return html.Div([
         html.Div(className="page-header", children=[
-            html.Span(f"📍 {loc(level,prov,kab)}  ·  {year}", className="page-badge"),
+            html.Span(f"{loc(level,prov,kab)}  ·  {year}", className="page-badge"),
             html.H1("Angkatan Kerja (AK)", className="page-title"),
             html.P("Penduduk yang bekerja atau sedang mencari pekerjaan", className="page-subtitle"),
         ]),
         dbc.Row([
-            dbc.Col(kpi_card("💼", "Total Angkatan Kerja", fmt_compact(total), PALETTE["blue"], f"{PALETTE['blue']}14"), md=4),
-            dbc.Col(kpi_card("👨", "Laki-laki", f"{fmt_compact(lk)} ({lk/(lk+pr)*100:.1f}%)" if (lk+pr)>0 else "—", PALETTE["indigo"], f"{PALETTE['indigo']}14"), md=4),
-            dbc.Col(kpi_card("👩", "Perempuan",  f"{fmt_compact(pr)} ({pr/(lk+pr)*100:.1f}%)" if (lk+pr)>0 else "—", "#E91E8C", "#E91E8C14"), md=4),
+            dbc.Col(kpi_card("AK", "Total Angkatan Kerja", fmt_compact(total), PALETTE["blue"], f"{PALETTE['blue']}14"), md=4),
+            dbc.Col(kpi_card("L", "Laki-laki", f"{fmt_compact(lk)} ({lk/(lk+pr)*100:.1f}%)" if (lk+pr)>0 else "—", PALETTE["indigo"], f"{PALETTE['indigo']}14"), md=4),
+            dbc.Col(kpi_card("P", "Perempuan",  f"{fmt_compact(pr)} ({pr/(lk+pr)*100:.1f}%)" if (lk+pr)>0 else "—", "#E91E8C", "#E91E8C14"), md=4),
         ], className="g-3 mb-2"),
 
         section("Profil Angkatan Kerja"),

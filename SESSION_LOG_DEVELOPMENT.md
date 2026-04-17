@@ -1,55 +1,51 @@
 # Project Dash Labor Board - Session Development Log
-**Tanggal Terakhir Update:** 17 April 2026
-**Status:** Stabil & Fitur Baru Aktif
+**Tanggal Terakhir Update:** 18 April 2026
+**Status:** Stabil & Fitur Lengkap
 
 ---
 
-## Sesi 17 April 2026 — Geo Map, Refactoring, & EWS
+## Sesi 17–18 April 2026 — Geo Map, Refactoring, EWS, & Estetika
 
 ### 1. Peta Sebaran (Choropleth Map) ✅
-Menambahkan halaman **Peta Sebaran** untuk memvisualisasikan indikator ketenagakerjaan per provinsi di seluruh Indonesia.
+Menambahkan halaman **Peta Sebaran** untuk memvisualisasikan indikator ketenagakerjaan per provinsi.
 
-- **GeoJSON:** Mengunduh data 38 provinsi Indonesia ke `Database/indonesia-provinces.geojson`
-- **Name Mapping:** Implementasi `_PROV_NAME_TO_GEO` untuk mencocokkan nama BPS ↔ GeoJSON (Bangka Belitung, D I Yogyakarta)
-- **Fitur Halaman:**
-  - Dropdown inline 7 indikator (PUK, AK, PYB, PT, TPAK, TPT, EPR)
-  - Choropleth map Indonesia (Plotly `go.Choroplethmap`)
-  - KPI cards Top 3 & Bottom 3 provinsi
-  - Bar chart ranking 38 provinsi
-- **Layout:** KPI cards → Peta → Ranking bar chart (atas ke bawah)
+- **GeoJSON:** Data 38 provinsi Indonesia di `Database/indonesia-provinces.geojson`
+- **Name Mapping:** `_PROV_NAME_TO_GEO` untuk mencocokkan nama BPS ↔ GeoJSON
+- **Fitur:** Dropdown 7 indikator, choropleth map, KPI Top/Bottom 3, ranking bar chart
+- **Layout:** KPI cards → Peta → Ranking bar chart
 
 ### 2. Refactoring: Modularisasi app.py ✅
-Memecah file `app.py` (1.712 baris) menjadi **12 file modular** menggunakan mekanisme `sed` + copy-paste:
+Memecah file `app.py` (1.712 baris) menjadi **12 file modular**:
 
-| File | Lines | Isi |
-|---|---|---|
-| `app.py` | ~165 | Entry point: app init, layout, callbacks (navigasi + filter + routing) |
-| `design.py` | ~321 | PALETTE, SEQ, CHART, apply_chart(), CUSTOM_CSS |
-| `data_loader.py` | ~135 | load_data(), fix_ratio(), filter_data(), load_geojson(), trend_filter() |
-| `components.py` | ~162 | make_sidebar(), kpi_card(), chart_card(), section(), fmt_compact(), loc(), loc_name() |
-| `pages/main.py` | ~160 | render_main() — Ringkasan Eksekutif |
-| `pages/geomap.py` | ~205 | render_geomap() + register_geomap_callbacks() — Peta Sebaran |
-| `pages/ews.py` | ~270 | render_ews() — Early Warning System |
-| `pages/puk.py` | ~119 | render_puk() — Penduduk Usia Kerja |
-| `pages/ak.py` | ~100 | render_ak() — Angkatan Kerja |
-| `pages/pt.py` | ~114 | render_pt() — Pengangguran Terbuka |
-| `pages/pyb.py` | ~132 | render_pyb() — Penduduk Bekerja |
-| `pages/demo.py` | ~60 | render_demo_page() — Mock data |
-| `pages/ratio.py` | ~218 | _build_ratio_page(), render_tpak/tpt_rasio/epr |
+| File | Isi |
+|---|---|
+| `app.py` (~165 baris) | Entry point: init, layout, callbacks |
+| `design.py` (~325 baris) | PALETTE, SEQ, CHART, apply_chart(), CUSTOM_CSS |
+| `data_loader.py` (~135 baris) | load_data(), fix_ratio(), filter_data(), load_geojson() |
+| `components.py` (~164 baris) | make_sidebar(), kpi_card(), chart_card(), section(), fmt_compact() |
+| `pages/main.py` | Ringkasan Eksekutif |
+| `pages/geomap.py` | Peta Sebaran (choropleth + callback) |
+| `pages/ews.py` | Early Warning System (3 mode chart + callback) |
+| `pages/puk.py` | Penduduk Usia Kerja |
+| `pages/ak.py` | Angkatan Kerja |
+| `pages/pt.py` | Pengangguran Terbuka |
+| `pages/pyb.py` | Penduduk Bekerja |
+| `pages/ratio.py` | TPAK, TPT, EPR (shared builder) |
 
-- **Backup:** `app_backup.py` (ditambah ke `.gitignore`)
-- **Manfaat:** Setiap page bisa diedit independen, app.py hanya ~165 baris
+### 3. Logo Kemnaker & Sidebar ✅
+- Logo `assets/kemnaker-logo.png` di sidebar (210×210px)
+- Sidebar scroll fix: `max-height: 100vh` + `overflow-y: auto` di `custom.css`
 
-### 3. Logo Kemnaker ✅
-- Logo `assets/kemnaker-logo.png` ditampilkan di sidebar menggantikan emoji ⚙️
-- Ukuran disesuaikan user menjadi **210×210px** dengan `borderRadius: 10px`
+### 4. Early Warning System (EWS) ✅
+Halaman EWS menampilkan **10 indikator kunci** dengan **3 mode visualisasi** (toggle switch):
 
-### 4. Sidebar Scroll Fix ✅
-- Menambahkan `max-height: 100vh` dan `overflow-y: auto` di `assets/custom.css`
-- Fix duplikasi CSS antara `custom.css` dan inline `CUSTOM_CSS` di `design.py`
+| Mode | Tampilan |
+|---|---|
+| Bar Chart | Top 10 daerah per indikator (horizontal bar) |
+| Peta Sebaran | Choropleth map per indikator (nasional only) |
+| Treemap | Proporsi daerah per indikator |
 
-### 5. Early Warning System (EWS) ✅
-Halaman baru **Early Warning System** menampilkan **10 bar chart horizontal**, masing-masing memvisualisasikan **Top 10 daerah** untuk setiap indikator kunci:
+**10 Indikator EWS:**
 
 | # | Indikator | Sumber | Kolom/Rumus |
 |---|---|---|---|
@@ -61,59 +57,99 @@ Halaman baru **Early Warning System** menampilkan **10 bar chart horizontal**, m
 | 6 | Pengangguran Terdidik | PT | `pd_univ / PT × 100` |
 | 7 | Partisipasi Perempuan | TPAK | `jk_pr` |
 | 8 | Partisipasi Pekerja Muda | TPAK | `ku_1519` |
-| 9 | Tingkat Pengangguran Terbuka | TPT | `TPT` |
-| 10 | Employment to Population Ratio | EPR | `EPR` |
+| 9 | TPT | TPT | `TPT` |
+| 10 | EPR | EPR | `EPR` |
 
 - **Nasional:** Top 10 Provinsi per indikator
 - **Provinsi:** Top 10 Kabupaten/Kota dalam provinsi terpilih
-- **Layout:** 2 kolom × 5 baris (10 chart total)
+- **Callback:** `register_ews_callbacks(app)` untuk mode switching
+
+### 5. Revisi Dashboard PUK, AK, PT, PYB ✅
+Semua 4 halaman diperbarui secara konsisten:
+
+| Perubahan | Detail |
+|---|---|
+| Piramida Usia (PUK) | Diganti → Donut chart gender (biru + pink) |
+| Bar Gender (AK) | Diganti → Donut chart gender |
+| Distribusi Usia per Gender (AK) | Dihapus |
+| Donut Perkotaan vs Perdesaan | Ditambahkan di keempat halaman |
+| Line Chart Kelompok Usia | Ditambahkan (satuan jumlah, bukan rasio) |
+| Label Donut | Menggunakan jumlah dengan singkatan M/K (bukan persen) |
+| Tren Historis | Full-width (md=12) dengan section sub-judul sendiri |
+
+### 6. Overhaul Estetika — Font & Emoji ✅
+
+**Font System Baru (Government Modern / Corporate Executive):**
+
+| Layer | Sebelum | Sesudah |
+|---|---|---|
+| Judul & Header | Plus Jakarta Sans 800 | IBM Plex Sans 700 |
+| Body & UI | Plus Jakarta Sans | Inter |
+| Angka KPI | JetBrains Mono | JetBrains Mono (dipertahankan) |
+| Chart | Plus Jakarta Sans | Inter |
+
+**Emoji Minimization:**
+
+| Area | Sebelum | Sesudah |
+|---|---|---|
+| Sidebar nav | 📊🗺️⚠️👥💼❌✅📈📉 | Teks bersih tanpa emoji |
+| KPI card icons | 👥💼✅❌🏠🔍⏱️🏭 | Singkatan: PUK, AK, PYB, PT, L, P, % |
+| Page badge | 📍 📅 | Teks bersih |
+| Page title | ⚠️ | Teks bersih |
+| Geomap medals | 🥇🥈🥉📉🏆 | 1st, 2nd, 3rd, Tertinggi, Terendah |
+
+**File yang Diubah:** `design.py`, `assets/custom.css`, `app.py`, `components.py`, `pages/main.py`, `pages/puk.py`, `pages/ak.py`, `pages/pt.py`, `pages/pyb.py`, `pages/ratio.py`, `pages/geomap.py`, `pages/ews.py`
 
 ---
 
 ## Sesi 16 April 2026 — Integrasi Dataset Rasio
 
 ### 1. Integrasi Dataset Rasio (TPAK, TPT, EPR)
-Telah diintegrasikan tiga indikator rasio utama dengan dataset versi terbaru (`ver2.xlsx`):
+Tiga indikator rasio utama dengan dataset versi terbaru (`ver2.xlsx`):
 - **TPAK:** Tingkat Partisipasi Angkatan Kerja (Rasio AK / PUK)
 - **TPT:** Tingkat Pengangguran Terbuka (Rasio PT / AK)
 - **EPR:** Employment to Population Ratio (Rasio PYB / PUK)
 
 ### 2. Fitur Data Engineering
-- **Fix Ratio Logic:** Implementasi fungsi `fix_ratio(val)` untuk otomatis mendeteksi dan memperbaiki data Excel yang korup (terbaca sebagai `timedelta` atau `datetime`).
-- **Standardisasi Filter:** Memastikan filtering tahun, level (Nasional/Provinsi/Kabupaten), dan wilayah sinkron di seluruh dashboard.
+- **Fix Ratio Logic:** Fungsi `fix_ratio(val)` untuk memperbaiki data Excel korup
+- **Standardisasi Filter:** Filtering tahun, level, wilayah sinkron di seluruh dashboard
 
 ### 3. Desain UI & Visualisasi
-Dashboard rasio kini menggunakan layout premium dengan variasi chart:
-- **Line Chart (Age Groups):** Distribusi umur yang lebih halus.
-- **Donut Charts (Gender & Wilayah):** Fokus pada perbandingan proporsi.
-- **Full-Width Trend Section:** Tren historis 2018-2025 di bagian bawah.
-- **Padding & Margin:** Penyesuaian `xaxis range` dan `margin` agar angka tidak terpotong.
+- Line Chart (Age Groups), Donut Charts (Gender & Wilayah)
+- Full-Width Trend Section, penyesuaian padding & margin
 
 ---
 
 ## Info Teknis
 
 ### Akses & Testing
-- **Server:** `host='0.0.0.0'` untuk akses dalam jaringan lokal (WiFi)
-- **Port:** `8050` untuk dashboard utama (`app.py`)
-- **Localtunnel:** `npx localtunnel --port 8050` untuk akses publik/remote
+- **Server:** `host='0.0.0.0'` untuk akses jaringan lokal
+- **Port:** `8050` untuk dashboard utama
+- **Localtunnel:** `npx localtunnel --port 8050` untuk akses publik
+
+### Font Stack
+```
+Header:  'IBM Plex Sans', 'Inter', sans-serif
+Body:    'Inter', 'Roboto', sans-serif
+Mono:    'JetBrains Mono', 'IBM Plex Mono', monospace
+```
 
 ### Struktur File
 ```
 ├── app.py              ← Entry point (~165 baris)
-├── design.py           ← Palet warna, CSS, chart config
+├── design.py           ← Palet warna, font, CSS, chart config
 ├── data_loader.py      ← Load data, filter, GeoJSON
 ├── components.py       ← Sidebar, KPI card, chart card
 ├── pages/
 │   ├── main.py         ← Ringkasan Eksekutif
-│   ├── geomap.py       ← Peta Sebaran (choropleth)
-│   ├── ews.py          ← Early Warning System
+│   ├── geomap.py       ← Peta Sebaran (choropleth + callback)
+│   ├── ews.py          ← Early Warning System (3 mode + callback)
 │   ├── puk.py          ← Penduduk Usia Kerja
 │   ├── ak.py           ← Angkatan Kerja
 │   ├── pt.py           ← Pengangguran Terbuka
 │   ├── pyb.py          ← Penduduk Bekerja
 │   ├── demo.py         ← Demo (mock data)
-│   └── ratio.py        ← TPAK, TPT, EPR
+│   └── ratio.py        ← TPAK, TPT, EPR (shared builder)
 ├── Database/           ← File .xlsx & .geojson
 ├── assets/             ← CSS, logo, dan static files
 └── app_backup.py       ← Backup pre-refactoring

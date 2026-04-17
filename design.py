@@ -26,7 +26,7 @@ CHART = dict(
     template="plotly_white",
     paper_bgcolor="rgba(0,0,0,0)",
     plot_bgcolor="rgba(0,0,0,0)",
-    font=dict(family="Plus Jakarta Sans, sans-serif", color=PALETTE["text"], size=12),
+    font=dict(family="Inter, sans-serif", color=PALETTE["text"], size=12),
     margin=dict(l=12, r=12, t=48, b=12),
     hoverlabel=dict(bgcolor=PALETTE["surface"], font_size=12, bordercolor=PALETTE["border"]),
     legend=dict(
@@ -70,7 +70,7 @@ except Exception:
 CUSTOM_CSS = f"""
 * {{ box-sizing: border-box; }}
 body {{
-    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-family: 'Inter', 'Roboto', sans-serif;
     background: {PALETTE["bg"]};
     color: {PALETTE["text"]};
     margin: 0;
@@ -99,6 +99,7 @@ body {{
     color: #fff;
     font-size: 15px;
     font-weight: 700;
+    font-family: 'IBM Plex Sans', 'Inter', sans-serif;
     margin: 10px 0 2px;
     letter-spacing: -0.2px;
     line-height: 1.3;
@@ -133,7 +134,7 @@ body {{
     border-radius: 10px;
     cursor: pointer;
     text-align: left;
-    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-family: 'Inter', sans-serif;
     font-size: 13px;
     font-weight: 500;
     transition: all 0.18s ease;
@@ -178,10 +179,11 @@ body {{
 }}
 .page-title {{
     font-size: 26px;
-    font-weight: 800;
+    font-weight: 700;
+    font-family: 'IBM Plex Sans', 'Inter', sans-serif;
     color: {PALETTE["text"]};
     margin: 0 0 4px;
-    letter-spacing: -0.5px;
+    letter-spacing: -0.3px;
 }}
 .page-subtitle {{
     font-size: 13.5px;
@@ -246,7 +248,7 @@ body {{
     font-size: 28px;
     font-weight: 800;
     color: {PALETTE["text"]};
-    font-family: 'JetBrains Mono', monospace;
+    font-family: 'JetBrains Mono', 'IBM Plex Mono', monospace;
     letter-spacing: -1px;
     line-height: 1;
 }}

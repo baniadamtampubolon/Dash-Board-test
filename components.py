@@ -34,22 +34,22 @@ def make_sidebar():
         html.Div(className="sidebar-section", children=[
             html.Div("Menu Utama", className="sidebar-label"),
             html.Div(className="sidebar-nav", children=[
-                html.Button(["📊 ", "Ringkasan Eksekutif"], id="nav-main", className="nav-btn active", n_clicks=0),
-                html.Button(["🗺️ ", "Peta Sebaran"],        id="nav-geomap", className="nav-btn", n_clicks=0),
-                html.Button(["⚠️ ", "Early Warning System"], id="nav-ews",    className="nav-btn", n_clicks=0),
-                html.Button(["👥 ", "Penduduk Usia Kerja"], id="nav-puk",  className="nav-btn", n_clicks=0),
-                html.Button(["💼 ", "Angkatan Kerja"],       id="nav-ak",   className="nav-btn", n_clicks=0),
-                html.Button(["❌ ", "Pengangguran Terbuka"], id="nav-pt",   className="nav-btn", n_clicks=0),
-                html.Button(["✅ ", "Penduduk Bekerja"],     id="nav-pyb",  className="nav-btn", n_clicks=0),
+                html.Button("Ringkasan Eksekutif", id="nav-main",   className="nav-btn active", n_clicks=0),
+                html.Button("Peta Sebaran",        id="nav-geomap", className="nav-btn", n_clicks=0),
+                html.Button("Early Warning System", id="nav-ews",   className="nav-btn", n_clicks=0),
+                html.Button("Penduduk Usia Kerja",  id="nav-puk",   className="nav-btn", n_clicks=0),
+                html.Button("Angkatan Kerja",       id="nav-ak",    className="nav-btn", n_clicks=0),
+                html.Button("Pengangguran Terbuka", id="nav-pt",    className="nav-btn", n_clicks=0),
+                html.Button("Penduduk Bekerja",     id="nav-pyb",   className="nav-btn", n_clicks=0),
             ]),
         ]),
 
         html.Div(className="sidebar-section", style={"paddingTop": "10px"}, children=[
             html.Div("Indikator Rasio", className="sidebar-label"),
             html.Div(className="sidebar-nav", children=[
-                html.Button(["📈 ", "TPAK"], id="nav-tpak", className="nav-btn", n_clicks=0),
-                html.Button(["📉 ", "TPT"], id="nav-tpt_rasio", className="nav-btn", n_clicks=0),
-                html.Button(["📊 ", "EPR"], id="nav-epr", className="nav-btn", n_clicks=0),
+                html.Button("TPAK", id="nav-tpak",      className="nav-btn", n_clicks=0),
+                html.Button("TPT",  id="nav-tpt_rasio",  className="nav-btn", n_clicks=0),
+                html.Button("EPR",  id="nav-epr",        className="nav-btn", n_clicks=0),
             ]),
         ]),
 
