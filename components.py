@@ -24,7 +24,9 @@ def fmt_compact(val):
 def make_sidebar():
     return html.Div(className="sidebar", children=[
         html.Div(className="sidebar-logo", children=[
-            html.Div("⚙️", style={"fontSize": "28px"}),
+            html.Img(src="/assets/kemnaker-logo.png",
+                     style={"width": "210px", "height": "210px", "objectFit": "contain",
+                            "borderRadius": "10px"}),
             html.H2("Dashboard Ketenagakerjaan"),
             html.P("Kementerian Ketenagakerjaan RI"),
         ]),

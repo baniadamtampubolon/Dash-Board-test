@@ -171,15 +171,7 @@ def register_geomap_callbacks(app):
         )
     
         return html.Div([
-            # Map
-            html.Div(className="chart-card", style={"marginBottom": "20px"}, children=[
-                html.Div(f"Peta {cfg['label']} per Provinsi", className="chart-card-title"),
-                html.Div(f"Tahun {year} — Semua provinsi di Indonesia", className="chart-card-sub"),
-                dcc.Graph(figure=map_fig, config={"displayModeBar": False, "scrollZoom": True},
-                          style={"borderRadius": "0 0 16px 16px"}),
-            ]),
-    
-            # Top / Bottom KPIs
+            # Top / Bottom KPIs (ban chart — di atas)
             section("Top & Bottom Provinsi"),
             dbc.Row([
                 dbc.Col(html.Div("🏆 Tertinggi", style={
@@ -190,8 +182,17 @@ def register_geomap_callbacks(app):
                     "marginBottom": "8px", "letterSpacing": "0.5px"}), md=6),
             ]),
             dbc.Row(top_cards + bot_cards, className="g-3 mb-3"),
-    
-            # Ranking bar
+
+            # Map (tengah)
+            section("Peta Choropleth"),
+            html.Div(className="chart-card", style={"marginBottom": "20px"}, children=[
+                html.Div(f"Peta {cfg['label']} per Provinsi", className="chart-card-title"),
+                html.Div(f"Tahun {year} — Semua provinsi di Indonesia", className="chart-card-sub"),
+                dcc.Graph(figure=map_fig, config={"displayModeBar": False, "scrollZoom": True},
+                          style={"borderRadius": "0 0 16px 16px"}),
+            ]),
+
+            # Ranking bar (bawah)
             section("Ranking Seluruh Provinsi"),
             html.Div(className="chart-card", children=[
                 html.Div(f"Ranking {cfg['label']} — {year}", className="chart-card-title"),

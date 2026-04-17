@@ -80,6 +80,8 @@ body {{
 .sidebar {{
     width: 260px;
     min-height: 100vh;
+    max-height: 100vh;
+    overflow-y: auto;
     background: linear-gradient(160deg, {PALETTE["navy"]} 0%, #102040 100%);
     position: fixed;
     left: 0; top: 0;
