@@ -1,6 +1,7 @@
 """Penduduk yang Bekerja (PYB) page."""
 
 from dash import dcc, html
+from dash_iconify import DashIconify
 import dash_bootstrap_components as dbc
 import plotly.express as px
 import plotly.graph_objects as go
@@ -99,12 +100,18 @@ def render_pyb(year, level, prov, kab):
         'sta_4':'Karyawan','sta_5':'Bebas (Tani)','sta_6':'Bebas (Non-Tani)','sta_7':'Keluarga',
     }
     sv = [int(data[c].sum()) if c in data.columns else 0 for c in sta_map]
-    sdf = pd.DataFrame({'Status': list(sta_map.values()), 'Jumlah': sv})
-    sta_fig = px.pie(sdf, values='Jumlah', names='Status', hole=0.55,
-                     color_discrete_sequence=SEQ)
-    sta_fig.update_traces(textposition='inside', textinfo='percent+label',
-                           hovertemplate="<b>%{label}</b><br>%{value:,.0f}<extra></extra>")
-    apply_chart(sta_fig, height=360)
+    sta_fig = go.Figure(go.Pie(
+        labels=list(sta_map.values()), values=sv, hole=0.6,
+        marker=dict(colors=[PALETTE["blue"], PALETTE["sky"], PALETTE["teal"], PALETTE["indigo"], PALETTE["gold"], PALETTE["red"], PALETTE["muted"]]),
+        textinfo='none', textposition='outside',
+        text=[f"{l}<br>{fmt_compact(v)}" for l, v in zip(sta_map.values(), sv)],
+        texttemplate="%{text}",
+        hovertemplate="<b>%{label}</b><br>%{value:,.0f} jiwa<extra></extra>",
+    ))
+    sta_fig.add_annotation(text="<b>Status<br>Pekerjaan</b>", x=0.5, y=0.5,
+                           font=dict(size=12, color=PALETTE["text"]), showarrow=False)
+    apply_chart(sta_fig, height=360, no_legend=True)
+    sta_fig.update_layout(margin=dict(l=60, r=60, t=20, b=20))
 
     # ── Jabatan horizontal ────────────────────────────────────────────────────
     jab_map = {
@@ -163,12 +170,12 @@ def render_pyb(year, level, prov, kab):
             html.P("Analisis mendalam profil pekerjaan, sektor, dan jabatan", className="page-subtitle"),
         ]),
         dbc.Row([
-            dbc.Col(kpi_card("PYB", "Total Penduduk Bekerja", fmt_compact(total),
+            dbc.Col(kpi_card(DashIconify(icon="la:industry-solid", width=26), "Total Penduduk Bekerja", fmt_compact(total),
                              PALETTE["teal"], f"{PALETTE['teal']}14"), md=4),
-            dbc.Col(kpi_card("S1", "Sektor Terbesar",
+            dbc.Col(kpi_card(DashIconify(icon="mdi:factory", width=24), "Sektor Terbesar",
                              ldf.sort_values('Jumlah').iloc[-1]['Sektor'] if not ldf.empty else "—",
                              PALETTE["blue"], f"{PALETTE['blue']}14"), md=4),
-            dbc.Col(kpi_card("48+", "Pekerja >48 jam/minggu",
+            dbc.Col(kpi_card(DashIconify(icon="lucide:clock-8", width=24), "Pekerja >48 jam/minggu",
                              fmt_compact(jmv[-1]) if jmv else "—",
                              PALETTE["gold"], f"{PALETTE['gold']}14"), md=4),
         ], className="g-3 mb-2"),

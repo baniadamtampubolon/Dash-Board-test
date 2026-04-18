@@ -1,6 +1,7 @@
 """Ratio indicator pages: TPAK, TPT, EPR with shared builder."""
 
 from dash import dcc, html
+from dash_iconify import DashIconify
 import dash_bootstrap_components as dbc
 import plotly.express as px
 import plotly.graph_objects as go
@@ -56,20 +57,17 @@ def _build_ratio_page(df, data, year, level, prov, kab, *,
         xaxis=dict(range=[-0.5, len(age_m) - 0.5]),
     )
 
-    # ── Gender DONUT chart ───────────────────────────────────────────────────
-    gen_fig = go.Figure(go.Pie(
-        labels=["Laki-laki", "Perempuan"], values=[v_lk, v_pr],
-        hole=0.6,
-        marker=dict(colors=[PALETTE["blue"], "#F48FB1"]),
-        textinfo='label+percent',
-        textposition='outside',
-        hovertemplate="<b>%{label}</b><br>%{value:.2f}%<extra></extra>",
-    ))
-    gen_fig.add_annotation(
-        text=f"<b>{label_short}</b><br>Gender", x=0.5, y=0.5,
-        font=dict(size=12, color=PALETTE["text"]), showarrow=False,
+    # ── Gender BAR chart ─────────────────────────────────────────────────────
+    gen_df = pd.DataFrame({'Gender': ["Laki-laki", "Perempuan"], 'Nilai': [v_lk, v_pr]})
+    gen_fig = px.bar(
+        gen_df.sort_values('Nilai'), x='Nilai', y='Gender', orientation='h',
+        color='Gender', color_discrete_map={"Laki-laki": PALETTE["blue"], "Perempuan": "#F48FB1"},
+        text=[f"{v:.2f}%" for v in gen_df.sort_values('Nilai')['Nilai']],
     )
-    apply_chart(gen_fig, height=300, no_legend=False)
+    gen_fig.update_traces(textposition='outside', hovertemplate="<b>%{y}</b><br>%{x:.2f}%<extra></extra>")
+    gen_fig.update_coloraxes(showscale=False)
+    apply_chart(gen_fig, height=300, no_legend=True)
+    gen_fig.update_layout(xaxis_title="", yaxis_title="", margin=dict(l=10, r=70, t=10, b=10))
 
     # ── Trend line ───────────────────────────────────────────────────────────
     t = trend_filter(df, level, prov, kab).groupby('thn')[ratio_col].mean().reset_index()
@@ -105,22 +103,19 @@ def _build_ratio_page(df, data, year, level, prov, kab, *,
     edu_fig.update_traces(textposition='outside')
     edu_fig.update_coloraxes(showscale=False)
     apply_chart(edu_fig, height=300)
-    edu_fig.update_layout(xaxis_title="", yaxis_title=f"{label_short} (%)")
+    edu_fig.update_layout(xaxis_title="", yaxis_title=f"{label_short} (%)", margin=dict(l=10, r=70, t=10, b=20))
 
-    # ── Kota vs Desa DONUT chart ─────────────────────────────────────────────
-    kd_fig = go.Figure(go.Pie(
-        labels=["Perkotaan", "Perdesaan"], values=[v_kota, v_desa],
-        hole=0.6,
-        marker=dict(colors=[PALETTE["sky"], PALETTE["gold"]]),
-        textinfo='label+percent',
-        textposition='outside',
-        hovertemplate="<b>%{label}</b><br>%{value:.2f}%<extra></extra>",
-    ))
-    kd_fig.add_annotation(
-        text=f"<b>{label_short}</b><br>Wilayah", x=0.5, y=0.5,
-        font=dict(size=12, color=PALETTE["text"]), showarrow=False,
+    # ── Kota vs Desa BAR chart ───────────────────────────────────────────────
+    kd_df = pd.DataFrame({'Wilayah': ["Perkotaan", "Perdesaan"], 'Nilai': [v_kota, v_desa]})
+    kd_fig = px.bar(
+        kd_df.sort_values('Nilai'), x='Nilai', y='Wilayah', orientation='h',
+        color='Wilayah', color_discrete_map={"Perkotaan": PALETTE["sky"], "Perdesaan": PALETTE["gold"]},
+        text=[f"{v:.2f}%" for v in kd_df.sort_values('Nilai')['Nilai']],
     )
-    apply_chart(kd_fig, height=300, no_legend=False)
+    kd_fig.update_traces(textposition='outside', hovertemplate="<b>%{y}</b><br>%{x:.2f}%<extra></extra>")
+    kd_fig.update_coloraxes(showscale=False)
+    apply_chart(kd_fig, height=300, no_legend=True)
+    kd_fig.update_layout(xaxis_title="", yaxis_title="", margin=dict(l=10, r=70, t=10, b=10))
 
     # ── Assemble page ────────────────────────────────────────────────────────
     return html.Div([
@@ -132,9 +127,9 @@ def _build_ratio_page(df, data, year, level, prov, kab, *,
         dbc.Row([
             dbc.Col(kpi_card(icon, label_short, f"{v_total:.2f}%",
                              accent, f"{accent}14"), md=4),
-            dbc.Col(kpi_card("L", f"{label_short} Laki-laki", f"{v_lk:.2f}%",
+            dbc.Col(kpi_card(DashIconify(icon="ion:male", width=24), f"{label_short} Laki-laki", f"{v_lk:.2f}%",
                              PALETTE["indigo"], f"{PALETTE['indigo']}14"), md=4),
-            dbc.Col(kpi_card("P", f"{label_short} Perempuan", f"{v_pr:.2f}%",
+            dbc.Col(kpi_card(DashIconify(icon="ion:female", width=24), f"{label_short} Perempuan", f"{v_pr:.2f}%",
                              "#E91E8C", "#E91E8C14"), md=4),
         ], className="g-3 mb-2"),
 
@@ -173,7 +168,7 @@ def render_tpak(year, level, prov, kab):
         ratio_col='TPAK',
         title="Tingkat Partisipasi Angkatan Kerja (TPAK)",
         subtitle="Persentase angkatan kerja terhadap penduduk usia kerja (AK / PUK)",
-        icon="%", accent=PALETTE["blue"],
+        icon=DashIconify(icon="fa-solid:percent", width=20), accent=PALETTE["blue"],
         fill_rgba="rgba(19,83,160,0.08)",
         color_scale=["#DBEAFE", PALETTE["blue"]],
         label_short="TPAK",
@@ -191,7 +186,7 @@ def render_tpt_rasio(year, level, prov, kab):
         ratio_col='TPT',
         title="Tingkat Pengangguran Terbuka (TPT)",
         subtitle="Persentase pengangguran terhadap total angkatan kerja (PT / AK)",
-        icon="%", accent=PALETTE["red"],
+        icon=DashIconify(icon="fa-solid:percent", width=20), accent=PALETTE["red"],
         fill_rgba="rgba(232,69,69,0.08)",
         color_scale=["#FEEBC8", PALETTE["red"]],
         label_short="TPT",
@@ -209,7 +204,7 @@ def render_epr(year, level, prov, kab):
         ratio_col='EPR',
         title="Employment to Population Ratio (EPR)",
         subtitle="Persentase penduduk bekerja terhadap penduduk usia kerja (PYB / PUK)",
-        icon="%", accent=PALETTE["teal"],
+        icon=DashIconify(icon="fa-solid:percent", width=20), accent=PALETTE["teal"],
         fill_rgba="rgba(13,158,138,0.08)",
         color_scale=["#E6F4F1", PALETTE["teal"]],
         label_short="EPR",

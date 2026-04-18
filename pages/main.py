@@ -1,6 +1,7 @@
 """Ringkasan Eksekutif page."""
 
 from dash import dcc, html
+from dash_iconify import DashIconify
 import dash_bootstrap_components as dbc
 import plotly.express as px
 import plotly.graph_objects as go
@@ -121,13 +122,13 @@ def render_main(year, level, prov, kab):
         ]),
 
         dbc.Row([
-            dbc.Col(kpi_card("PUK", "Penduduk Usia Kerja", f"{fmt_compact(v_puk)}",
+            dbc.Col(kpi_card(DashIconify(icon="fa-solid:users", width=24), "Penduduk Usia Kerja", f"{fmt_compact(v_puk)}",
                              PALETTE["indigo"], f"{PALETTE['indigo']}14"), md=3),
-            dbc.Col(kpi_card("AK", "Angkatan Kerja", f"{fmt_compact(v_ak)}  ({tpak:.1f}%)",
+            dbc.Col(kpi_card(DashIconify(icon="mdi:briefcase", width=24), "Angkatan Kerja", f"{fmt_compact(v_ak)}  ({tpak:.1f}%)",
                              PALETTE["blue"], f"{PALETTE['blue']}14"), md=3),
-            dbc.Col(kpi_card("PYB", "Penduduk Bekerja", fmt_compact(v_pyb),
+            dbc.Col(kpi_card(DashIconify(icon="la:industry-solid", width=26), "Penduduk Bekerja", fmt_compact(v_pyb),
                              PALETTE["teal"], f"{PALETTE['teal']}14"), md=3),
-            dbc.Col(kpi_card("PT", "Pengangguran Terbuka", f"{fmt_compact(v_pt)}  (TPT {tpr}%)",
+            dbc.Col(kpi_card(DashIconify(icon="fa-solid:frown-open", width=24), "Pengangguran Terbuka", f"{fmt_compact(v_pt)}  (TPT {tpr}%)",
                              PALETTE["red"], f"{PALETTE['red']}14"), md=3),
         ], className="g-3 mb-2"),
 

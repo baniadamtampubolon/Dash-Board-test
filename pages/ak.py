@@ -1,6 +1,7 @@
 """Angkatan Kerja (AK) page."""
 
 from dash import dcc, html
+from dash_iconify import DashIconify
 import dash_bootstrap_components as dbc
 import plotly.express as px
 import plotly.graph_objects as go
@@ -113,9 +114,9 @@ def render_ak(year, level, prov, kab):
             html.P("Penduduk yang bekerja atau sedang mencari pekerjaan", className="page-subtitle"),
         ]),
         dbc.Row([
-            dbc.Col(kpi_card("AK", "Total Angkatan Kerja", fmt_compact(total), PALETTE["blue"], f"{PALETTE['blue']}14"), md=4),
-            dbc.Col(kpi_card("L", "Laki-laki", f"{fmt_compact(lk)} ({lk/(lk+pr)*100:.1f}%)" if (lk+pr)>0 else "—", PALETTE["indigo"], f"{PALETTE['indigo']}14"), md=4),
-            dbc.Col(kpi_card("P", "Perempuan",  f"{fmt_compact(pr)} ({pr/(lk+pr)*100:.1f}%)" if (lk+pr)>0 else "—", "#E91E8C", "#E91E8C14"), md=4),
+            dbc.Col(kpi_card(DashIconify(icon="mdi:briefcase", width=24), "Total Angkatan Kerja", fmt_compact(total), PALETTE["blue"], f"{PALETTE['blue']}14"), md=4),
+            dbc.Col(kpi_card(DashIconify(icon="ion:male", width=24), "Laki-laki", f"{fmt_compact(lk)} ({lk/(lk+pr)*100:.1f}%)" if (lk+pr)>0 else "—", PALETTE["indigo"], f"{PALETTE['indigo']}14"), md=4),
+            dbc.Col(kpi_card(DashIconify(icon="ion:female", width=24), "Perempuan",  f"{fmt_compact(pr)} ({pr/(lk+pr)*100:.1f}%)" if (lk+pr)>0 else "—", "#E91E8C", "#E91E8C14"), md=4),
         ], className="g-3 mb-2"),
 
         section("Profil Angkatan Kerja"),

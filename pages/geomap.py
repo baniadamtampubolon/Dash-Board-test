@@ -2,6 +2,7 @@
 
 from dash import dcc, html, Input, Output
 import dash_bootstrap_components as dbc
+from dash_iconify import DashIconify
 import plotly.express as px
 import plotly.graph_objects as go
 import pandas as pd
@@ -134,7 +135,11 @@ def register_geomap_callbacks(app):
         bot3 = sorted_prov.tail(3).sort_values('value', ascending=True)
     
         top_cards = []
-        top_icons  = ["1st", "2nd", "3rd"]
+        top_icons  = [
+            DashIconify(icon="fa-solid:trophy", width=24),
+            DashIconify(icon="fa-solid:medal", width=24),
+            DashIconify(icon="fa-solid:award", width=24)
+        ]
         top_colors = [PALETTE["teal"], PALETTE["blue"], PALETTE["indigo"]]
         for i, (_, row) in enumerate(top3.iterrows()):
             top_cards.append(
@@ -143,7 +148,11 @@ def register_geomap_callbacks(app):
             )
     
         bot_cards = []
-        bot_icons  = ["⚠️", "⚠️", "⚠️"]
+        bot_icons  = [
+            DashIconify(icon="ph:warning-fill", width=24),
+            DashIconify(icon="ph:warning-fill", width=24),
+            DashIconify(icon="ph:warning-fill", width=24)
+        ]
         for i, (_, row) in enumerate(bot3.iterrows()):
             bot_cards.append(
                 dbc.Col(kpi_card(bot_icons[i], row['nm_prov'], fmt_val(row['value']),
@@ -174,12 +183,12 @@ def register_geomap_callbacks(app):
             # Top / Bottom KPIs (ban chart — di atas)
             section("Top & Bottom Provinsi"),
             dbc.Row([
-                dbc.Col(html.Div("Tertinggi", style={
+                dbc.Col(html.Div([DashIconify(icon="lucide:trending-up", width=16, style={"marginRight": "6px", "marginBottom": "2px"}), "Tertinggi"], style={
                     "fontSize": "12px", "fontWeight": "700", "color": PALETTE["teal"],
-                    "marginBottom": "8px", "letterSpacing": "0.5px"}), md=6),
-                dbc.Col(html.Div("Terendah", style={
+                    "marginBottom": "8px", "letterSpacing": "0.5px", "display": "flex", "alignItems": "center"}), md=6),
+                dbc.Col(html.Div([DashIconify(icon="lucide:trending-down", width=16, style={"marginRight": "6px", "marginBottom": "2px"}), "Terendah"], style={
                     "fontSize": "12px", "fontWeight": "700", "color": PALETTE["gold"],
-                    "marginBottom": "8px", "letterSpacing": "0.5px"}), md=6),
+                    "marginBottom": "8px", "letterSpacing": "0.5px", "display": "flex", "alignItems": "center"}), md=6),
             ]),
             dbc.Row(top_cards + bot_cards, className="g-3 mb-3"),
 

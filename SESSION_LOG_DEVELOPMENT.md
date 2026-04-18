@@ -88,17 +88,25 @@ Semua 4 halaman diperbarui secara konsisten:
 | Angka KPI | JetBrains Mono | JetBrains Mono (dipertahankan) |
 | Chart | Plus Jakarta Sans | Inter |
 
-**Emoji Minimization:**
+**SVG Icons System (`dash-iconify`):**
+Menggantikan emoji teks standar dan singkatan teks murni dengan icon SVG resolusi tinggi dari berbagai provider (Lucide, MDI, FontAwesome, Line Awesome) untuk membangun antarmuka yang sangat profesional.
 
 | Area | Sebelum | Sesudah |
 |---|---|---|
-| Sidebar nav | 📊🗺️⚠️👥💼❌✅📈📉 | Teks bersih tanpa emoji |
-| KPI card icons | 👥💼✅❌🏠🔍⏱️🏭 | Singkatan: PUK, AK, PYB, PT, L, P, % |
-| Page badge | 📍 📅 | Teks bersih |
-| Page title | ⚠️ | Teks bersih |
-| Geomap medals | 🥇🥈🥉📉🏆 | 1st, 2nd, 3rd, Tertinggi, Terendah |
+| Sidebar nav | 📊🗺️⚠️👥💼❌✅... / Teks Penuh | SVG Icon (`lucide`, `fa-solid`, `mdi`, `la`) berdampingan dengan Teks |
+| KPI card icons | Singkatan Teks (PUK, AK, PT) | SVG Representatif (`fa-solid:users`, `la:industry-solid`, dll) |
+| Page badge | Emoji 📍 📅 | Teks bersih tanpa icon |
+| Geomap medals | Teks (1st, 2nd, 3rd, Terendah) | SVG (`fa-solid:trophy`, `fa-solid:medal`, `ph:warning-fill`, dll) |
 
-**File yang Diubah:** `design.py`, `assets/custom.css`, `app.py`, `components.py`, `pages/main.py`, `pages/puk.py`, `pages/ak.py`, `pages/pt.py`, `pages/pyb.py`, `pages/ratio.py`, `pages/geomap.py`, `pages/ews.py`
+**File yang Diubah:** `design.py`, `assets/custom.css`, `app.py`, `components.py`, `pages/main.py`, `pages/puk.py`, `pages/ak.py`, `pages/pt.py`, `pages/pyb.py`, `pages/ratio.py`, `pages/geomap.py`, `pages/ews.py`, `/notes.txt`
+
+### 7. Standarisasi Format & Layout Chart Visual ✅
+Menyempurnakan dan menseragamkan tata letak visual berbagai grafik metrik agar tidak saling bertumpuk (bebas dari error *clipping*):
+- **Tema Visual Kemenaker:** Warna *sidebar* disesuaikan persis dengan spektrum biru maskapai resmi Kementerian (`#1353A0`) bergradasi menuju dominasi gelap angkatan laut dengan selektor *active* margin putih-kebiruan.
+- **Konversi Treemap ke Bar Chart:** Grafik "Tingkat Pendidikan" (PUK) diubah formatnya menjadi diagram mendatar demi pembandingan proporsi yang lebih linier. 
+- **Konversi Donut ke Bar Chart:** Seluruh grafik donat pada halaman rasio (Gender dan Kota vs Desa untuk dasbor TPAK, TPT, EPR) diubah bentuknya menjadi *horizontal bar chart*.
+- **Restrukturisasi Eksternal Label Donut Chart:** Merapikan metrik-metrik profil gabungan yang sempit (Proporsi Kategori PT, Status Pekerjaan PYB, dan Status Aktivitas PUK) murni ke ekstensi `go.Pie` — memindah keterangan *legend* menjadi tulisan tegak melayang yang menempel di luar roda, memberikan teks keterangan *center-hole*, dipadu palet pewarnaan serasi (Teal, Oranye, Biru).
+- **Perbaikan Margin Padding:** Menambahkan injeksi nilai _margin right_ hingga `70px` dan membatalkan parameter _no_legend=False_ demi mengatasi terpotongnya deretan teks angka persen ganda di sisi kanan _container_ tabel.
 
 ---
 

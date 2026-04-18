@@ -1,6 +1,7 @@
 """Penduduk Usia Kerja (PUK) page."""
 
 from dash import dcc, html
+from dash_iconify import DashIconify
 import dash_bootstrap_components as dbc
 import plotly.express as px
 import plotly.graph_objects as go
@@ -59,14 +60,17 @@ def render_puk(year, level, prov, kab):
     apply_chart(kd_fig, height=300, no_legend=False)
 
     # ── Status aktivitas donut ────────────────────────────────────────────────
-    act_df = pd.DataFrame({
-        'Aktivitas': ['Bekerja', 'Pengangguran', 'Bukan Angkatan Kerja'],
-        'Jumlah':    [working, unemployed, bak],
-    })
-    act_fig = px.pie(act_df, values='Jumlah', names='Aktivitas', hole=0.6,
-                     color_discrete_sequence=[PALETTE["teal"], PALETTE["red"], PALETTE["muted"]])
-    act_fig.update_traces(textposition='inside', textinfo='percent+label')
-    apply_chart(act_fig, height=340, no_legend=False)
+    act_fig = go.Figure(go.Pie(
+        labels=["Bekerja", "Pengangguran", "Bukan AK"], values=[working, unemployed, bak], hole=0.6,
+        marker=dict(colors=[PALETTE["teal"], "#FFB74D", "#CBD5E1"]),
+        textinfo='none', textposition='outside',
+        text=[f"Bekerja<br>{fmt_compact(working)}", f"Pengangguran<br>{fmt_compact(unemployed)}", f"Bukan AK<br>{fmt_compact(bak)}"],
+        texttemplate="%{text}",
+        hovertemplate="<b>%{label}</b><br>%{value:,.0f} jiwa<extra></extra>",
+    ))
+    act_fig.add_annotation(text="<b>Status<br>Aktivitas</b>", x=0.5, y=0.5,
+                           font=dict(size=11, color=PALETTE["text"]), showarrow=False)
+    apply_chart(act_fig, height=300, no_legend=False)
 
     # ── Age line chart (jumlah) ───────────────────────────────────────────────
     age_m = {
@@ -91,16 +95,20 @@ def render_puk(year, level, prov, kab):
         xaxis=dict(range=[-0.5, len(age_m) - 0.5]),
     )
 
-    # ── Education treemap ─────────────────────────────────────────────────────
+    # ── Education bar chart ───────────────────────────────────────────────────
     edu_map = {'pd_sd':'SD','pd_smp':'SMP','pd_smau':'SMA/MA','pd_smak':'SMK','pd_dipl':'Diploma','pd_univ':'Universitas'}
     edu_vals = [int(data[c].sum()) if c in data.columns else 0 for c in edu_map]
     edu_df = pd.DataFrame({'Pendidikan': list(edu_map.values()), 'Jumlah': edu_vals})
-    treemap = px.treemap(edu_df, path=['Pendidikan'], values='Jumlah',
-                         color='Jumlah', color_continuous_scale=["#E3EDF9", PALETTE["blue"]])
-    treemap.update_traces(texttemplate="<b>%{label}</b><br>%{value:,.0f}",
-                          hovertemplate="%{label}: %{value:,.0f}<extra></extra>")
-    treemap.update_coloraxes(showscale=False)
-    apply_chart(treemap, height=340)
+    
+    edu_bar = px.bar(
+        edu_df.sort_values('Jumlah'), x='Jumlah', y='Pendidikan', orientation='h',
+        color='Jumlah', color_continuous_scale=["#DBEAFE", PALETTE["blue"], PALETTE["navy"]],
+        text=[fmt_compact(v) for v in edu_df.sort_values('Jumlah')['Jumlah']],
+    )
+    edu_bar.update_traces(textposition='outside')
+    edu_bar.update_coloraxes(showscale=False)
+    apply_chart(edu_bar, height=340)
+    edu_bar.update_layout(xaxis_title="", yaxis_title="", margin=dict(l=10, r=60, t=10, b=10))
 
     # ── Trend (full width) ────────────────────────────────────────────────────
     t = trend_filter(df_puk, level, prov, kab).groupby('thn')['total'].sum().reset_index()
@@ -129,10 +137,10 @@ def render_puk(year, level, prov, kab):
             html.P("Distribusi demografis penduduk usia 15 tahun ke atas", className="page-subtitle"),
         ]),
         dbc.Row([
-            dbc.Col(kpi_card("PUK", "Total PUK",            fmt_compact(total),    PALETTE["blue"],   f"{PALETTE['blue']}14"),  md=3),
-            dbc.Col(kpi_card("PYB", "Penduduk Bekerja",     fmt_compact(working),  PALETTE["teal"],   f"{PALETTE['teal']}14"),  md=3),
-            dbc.Col(kpi_card("PT",  "Pengangguran Terbuka", fmt_compact(unemployed),PALETTE["red"],   f"{PALETTE['red']}14"),   md=3),
-            dbc.Col(kpi_card("BAK", "Bukan Angkatan Kerja", fmt_compact(bak),      PALETTE["muted"],  "#7A8BAA14"),              md=3),
+            dbc.Col(kpi_card(DashIconify(icon="fa-solid:users", width=24), "Total PUK",            fmt_compact(total),    PALETTE["blue"],   f"{PALETTE['blue']}14"),  md=3),
+            dbc.Col(kpi_card(DashIconify(icon="la:industry-solid", width=26), "Penduduk Bekerja",     fmt_compact(working),  PALETTE["teal"],   f"{PALETTE['teal']}14"),  md=3),
+            dbc.Col(kpi_card(DashIconify(icon="fa-solid:frown-open", width=24),  "Pengangguran Terbuka", fmt_compact(unemployed),PALETTE["red"],   f"{PALETTE['red']}14"),   md=3),
+            dbc.Col(kpi_card(DashIconify(icon="fa-solid:home", width=24), "Bukan Angkatan Kerja", fmt_compact(bak),      PALETTE["muted"],  "#7A8BAA14"),              md=3),
         ], className="g-3 mb-2"),
 
         section("Profil Demografis"),
@@ -145,7 +153,7 @@ def render_puk(year, level, prov, kab):
         section("Kelompok Usia & Pendidikan"),
         dbc.Row([
             dbc.Col(chart_card("PUK per Kelompok Usia", "Distribusi jumlah berdasarkan kelompok umur", age_fig), md=8),
-            dbc.Col(chart_card("Tingkat Pendidikan", "Proporsi berdasarkan jenjang pendidikan", treemap), md=4),
+            dbc.Col(chart_card("Tingkat Pendidikan", "Berdasarkan jenjang pendidikan", edu_bar), md=4),
         ], className="g-3 mb-2"),
 
         section("Tren Historis PUK"),

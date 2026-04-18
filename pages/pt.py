@@ -1,6 +1,7 @@
 """Pengangguran Terbuka (PT) page."""
 
 from dash import dcc, html
+from dash_iconify import DashIconify
 import dash_bootstrap_components as dbc
 import plotly.express as px
 import plotly.graph_objects as go
@@ -93,18 +94,19 @@ def render_pt(year, level, prov, kab):
         xaxis=dict(range=[-0.5, len(age_m) - 0.5]),
     )
 
-    # ── Sunburst proporsi kategori ────────────────────────────────────────────
-    sun_labels = ["Pengangguran"] + list(pt_map.values())
-    sun_parents = [""] + ["Pengangguran"] * len(pt_map)
-    sun_vals   = [total] + pt_vals
-    sun_fig = go.Figure(go.Sunburst(
-        labels=sun_labels, parents=sun_parents, values=sun_vals,
-        branchvalues='total',
-        marker=dict(colors=[PALETTE["red"], PALETTE["navy"], PALETTE["blue"],
-                             PALETTE["sky"], PALETTE["gold"]]),
-        hovertemplate="<b>%{label}</b><br>%{value:,.0f}<extra></extra>",
+    # ── Kategori PT donut ─────────────────────────────────────────────────────
+    kat_labels = list(pt_map.values())
+    kat_fig = go.Figure(go.Pie(
+        labels=kat_labels, values=pt_vals, hole=0.6,
+        marker=dict(colors=[PALETTE["gold"], PALETTE["sky"], PALETTE["red"], PALETTE["teal"]]),
+        textinfo='none', textposition='outside',
+        text=[f"{l}<br>{fmt_compact(v)}" for l, v in zip(kat_labels, pt_vals)],
+        texttemplate="%{text}",
+        hovertemplate="<b>%{label}</b><br>%{value:,.0f} jiwa<extra></extra>",
     ))
-    apply_chart(sun_fig, height=340, no_legend=True)
+    kat_fig.add_annotation(text="<b>Proporsi<br>Kategori</b>", x=0.5, y=0.5,
+                           font=dict(size=11, color=PALETTE["text"]), showarrow=False)
+    apply_chart(kat_fig, height=340, no_legend=True)
 
     # ── Trend (full width) ────────────────────────────────────────────────────
     ts = trend_filter(df, level, prov, kab)
@@ -133,9 +135,9 @@ def render_pt(year, level, prov, kab):
             html.P("Analisis kondisi dan karakteristik pengangguran", className="page-subtitle"),
         ]),
         dbc.Row([
-            dbc.Col(kpi_card("PT", "Total Pengangguran",    fmt_compact(total), PALETTE["red"],  f"{PALETTE['red']}14"),   md=4),
-            dbc.Col(kpi_card("%",  "TPT", f"{tpr}%", PALETTE["gold"], f"{PALETTE['gold']}14"), md=4),
-            dbc.Col(kpi_card("MP", "Mencari Pekerjaan",
+            dbc.Col(kpi_card(DashIconify(icon="fa-solid:frown-open", width=24), "Total Pengangguran",    fmt_compact(total), PALETTE["red"],  f"{PALETTE['red']}14"),   md=4),
+            dbc.Col(kpi_card(DashIconify(icon="fa-solid:percent", width=20),  "TPT", f"{tpr}%", PALETTE["gold"], f"{PALETTE['gold']}14"), md=4),
+            dbc.Col(kpi_card(DashIconify(icon="tabler:zoom-question", width=26), "Mencari Pekerjaan",
                              fmt_compact(pt_vals[0]) if pt_vals else "—",
                              PALETTE["navy"], f"{PALETTE['navy']}14"), md=4),
         ], className="g-3 mb-2"),
@@ -150,7 +152,7 @@ def render_pt(year, level, prov, kab):
         section("Profil Usia & Proporsi"),
         dbc.Row([
             dbc.Col(chart_card("PT per Kelompok Usia", "Distribusi jumlah berdasarkan kelompok umur", age_fig), md=8),
-            dbc.Col(chart_card("Proporsi Kategori", "Breakdown pengangguran", sun_fig), md=4),
+            dbc.Col(chart_card("Proporsi Kategori", "Breakdown pengangguran", kat_fig), md=4),
         ], className="g-3 mb-2"),
 
         section("Tren Historis Pengangguran"),

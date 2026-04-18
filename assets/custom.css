@@ -12,7 +12,7 @@ body {
     min-height: 100vh;
     max-height: 100vh;
     overflow-y: auto;
-    background: linear-gradient(160deg, #0A1628 0%, #102040 100%);
+    background: linear-gradient(160deg, #1353A0 10%, #0A1D3A 90%);
     position: fixed;
     left: 0; top: 0;
     display: flex;
@@ -72,12 +72,12 @@ body {
     align-items: center;
     gap: 10px;
 }
-.nav-btn:hover { background: rgba(255,255,255,0.08); color: #fff; }
+.nav-btn:hover { background: rgba(255,255,255,0.12); color: #fff; }
 .nav-btn.active {
-    background: rgba(46,134,222,0.25);
+    background: rgba(255,255,255,0.18);
     color: #fff;
     font-weight: 600;
-    border-left: 3px solid #2E86DE;
+    border-left: 3px solid #93C5FD;
 }
 .sidebar-divider {
     border: none;
@@ -241,7 +241,7 @@ body {
 .dash-dropdown .Select-placeholder { color: rgba(255,255,255,0.4) !important; font-size: 12px; }
 .dash-dropdown .Select-arrow { border-top-color: rgba(255,255,255,0.4) !important; }
 
-.radio-group .form-check-input { accent-color: #2E86DE; }
+.radio-group .form-check-input { accent-color: #1353A0; }
 .radio-group .form-check-label {
     color: rgba(255,255,255,0.65);
     font-size: 12.5px;

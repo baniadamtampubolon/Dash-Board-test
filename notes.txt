@@ -1,3 +1,60 @@
-icon:
-male = import { IoIosMale } from "react-icons/io";
-female = import { IoMdFemale } from "react-icons/io";
+# ═══════════════════════════════════════════════════════════════════
+#  ICON REFERENCE: react-icons → dash-iconify mapping
+# ═══════════════════════════════════════════════════════════════════
+#
+# CARA PAKAI DI DASH:
+#   from dash_iconify import DashIconify
+#   DashIconify(icon="ion:male", width=20, color="#1353A0")
+#
+# react-icons menggunakan prefix library:
+#   Io = Ionicons         → ion:
+#   Fa = Font Awesome     → fa-solid:  /  fa6-solid:
+#   Ai = Ant Design       → ant-design:
+#   Ci = css.gg           → ci:
+#   Ri = Remix Icon       → ri:
+#   Tb = Tabler Icons     → tabler:
+#   Md = Material Design  → mdi:  /  material-symbols:
+#   Lia = Line Awesome    → la:
+#   Lu = Lucide           → lucide:
+#
+# ─── MAPPING ────────────────────────────────────────────────────
+#
+# IDENTITAS      | react-icons               | iconify ID
+# ───────────────|───────────────────────────|─────────────────────────
+# male           | IoIosMale                 | ion:male
+# female         | IoMdFemale                | ion:female
+# calculator     | AiOutlineCalculator       | ant-design:calculator-outlined
+# map            | FaMapMarkerAlt            | fa-solid:map-marker-alt
+# chart          | FaChartLine               | fa-solid:chart-line
+# warning        | CiWarning                 | ci:warning
+# number1        | RiNumber1                 | ri:number-1
+# number2        | RiNumber2                 | ri:number-2
+# number3        | RiNumber3                 | ri:number-3
+# treemap        | TbChartTreemap            | tabler:chart-treemap
+# bar            | FaChartBar                | fa-solid:chart-bar
+# mencari kerja  | TbZoomQuestion            | tabler:zoom-question
+# persen         | FaPercent                 | fa-solid:percent
+# pengangguran   | FaFrownOpen               | fa-solid:frown-open
+# bekerja        | MdWork                    | mdi:briefcase
+# industri       | LiaIndustrySolid          | la:industry-solid
+# jam kerja      | LuClock8                  | lucide:clock-8
+#
+# ─── CONTOH PENGGUNAAN DI KOMPONEN ─────────────────────────────
+#
+# 1) Sebagai icon KPI card:
+#    kpi_card(DashIconify(icon="ion:male", width=20), "Laki-laki", "85.3M", ...)
+#
+# 2) Sebagai bagian tombol sidebar:
+#    html.Button([
+#        DashIconify(icon="fa-solid:chart-line", width=16, style={"marginRight": "8px"}),
+#        "Ringkasan Eksekutif"
+#    ], id="nav-main", className="nav-btn")
+#
+# 3) Standalone di layout:
+#    DashIconify(icon="tabler:chart-treemap", width=24, color="#1353A0")
+#
+# ─── TIPS ───────────────────────────────────────────────────────
+# - Cari icon di:  https://icon-sets.iconify.design/
+# - Semua icon di-render sebagai SVG inline (ringan, scalable)
+# - Properties: icon, width, height, color, rotate, flip, style
+# - Tidak perlu download file, icon di-load otomatis dari CDN
