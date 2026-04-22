@@ -12,7 +12,7 @@ body {
     min-height: 100vh;
     max-height: 100vh;
     overflow-y: auto;
-    background: linear-gradient(160deg, #1353A0 10%, #0A1D3A 90%);
+    background: linear-gradient(160deg, #15406A 0%, #0B2136 100%);
     position: fixed;
     left: 0; top: 0;
     display: flex;
@@ -78,6 +78,20 @@ body {
     color: #fff;
     font-weight: 600;
     border-left: 3px solid #93C5FD;
+}
+.nav-btn.nav-ews-btn {
+    color: #FBBF24;
+    font-weight: 500;
+}
+.nav-btn.nav-ews-btn:hover {
+    color: #FDE047;
+    background: rgba(251, 191, 36, 0.12);
+}
+.nav-btn.nav-ews-btn.active {
+    background: rgba(251, 191, 36, 0.22);
+    color: #FEF08A;
+    font-weight: 600;
+    border-left: 3px solid #F87171; /* A slight red/amber warning edge */
 }
 .sidebar-divider {
     border: none;

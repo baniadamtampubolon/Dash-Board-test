@@ -33,30 +33,6 @@ def make_sidebar():
         ]),
 
         html.Div(className="sidebar-section", children=[
-            html.Div("Menu Utama", className="sidebar-label"),
-            html.Div(className="sidebar-nav", children=[
-                html.Button([DashIconify(icon="lucide:layout-dashboard", width=18, style={"marginRight": "10px", "marginBottom": "2px"}), "Ringkasan Eksekutif"], id="nav-main",   className="nav-btn active", n_clicks=0),
-                html.Button([DashIconify(icon="fa-solid:map-marker-alt", width=16, style={"marginRight": "10px", "marginBottom": "2px"}), "Peta Sebaran"],        id="nav-geomap", className="nav-btn", n_clicks=0),
-                html.Button([DashIconify(icon="lucide:alert-triangle", width=18, style={"marginRight": "10px", "marginBottom": "2px"}), "Early Warning System"], id="nav-ews",   className="nav-btn", n_clicks=0),
-                html.Button([DashIconify(icon="fa-solid:users", width=16, style={"marginRight": "10px", "marginBottom": "2px"}), "Penduduk Usia Kerja"],  id="nav-puk",   className="nav-btn", n_clicks=0),
-                html.Button([DashIconify(icon="mdi:briefcase", width=18, style={"marginRight": "10px", "marginBottom": "2px"}), "Angkatan Kerja"],       id="nav-ak",    className="nav-btn", n_clicks=0),
-                html.Button([DashIconify(icon="fa-solid:frown-open", width=16, style={"marginRight": "10px", "marginBottom": "2px"}), "Pengangguran Terbuka"], id="nav-pt",    className="nav-btn", n_clicks=0),
-                html.Button([DashIconify(icon="la:industry-solid", width=18, style={"marginRight": "10px", "marginBottom": "2px"}), "Penduduk Bekerja"],     id="nav-pyb",   className="nav-btn", n_clicks=0),
-            ]),
-        ]),
-
-        html.Div(className="sidebar-section", style={"paddingTop": "10px"}, children=[
-            html.Div("Indikator Rasio", className="sidebar-label"),
-            html.Div(className="sidebar-nav", children=[
-                html.Button([DashIconify(icon="lucide:activity", width=18, style={"marginRight": "10px", "marginBottom": "2px"}), "TPAK"], id="nav-tpak",      className="nav-btn", n_clicks=0),
-                html.Button([DashIconify(icon="lucide:trending-down", width=18, style={"marginRight": "10px", "marginBottom": "2px"}), "TPT"],  id="nav-tpt_rasio",  className="nav-btn", n_clicks=0),
-                html.Button([DashIconify(icon="lucide:trending-up", width=18, style={"marginRight": "10px", "marginBottom": "2px"}), "EPR"],  id="nav-epr",        className="nav-btn", n_clicks=0),
-            ]),
-        ]),
-
-        html.Hr(className="sidebar-divider"),
-
-        html.Div(className="sidebar-section", children=[
             html.Div("Filter Wilayah", className="sidebar-label"),
 
             html.Span("Tahun", className="filter-label"),
@@ -104,6 +80,36 @@ def make_sidebar():
                     className="dash-dropdown",
                     style={"marginBottom": "14px"},
                 ),
+            ]),
+        ]),
+
+        html.Hr(className="sidebar-divider"),
+
+        html.Div(className="sidebar-section", children=[
+            html.Div("Peringatan Dini", className="sidebar-label"),
+            html.Div(className="sidebar-nav", children=[
+                html.Button([DashIconify(icon="lucide:alert-triangle", width=18, style={"marginRight": "10px", "marginBottom": "2px"}), "Early Warning System"], id="nav-ews",   className="nav-btn nav-ews-btn", n_clicks=0),
+            ]),
+        ]),
+
+        html.Div(className="sidebar-section", style={"paddingTop": "10px"}, children=[
+            html.Div("Menu Utama", className="sidebar-label"),
+            html.Div(className="sidebar-nav", children=[
+                html.Button([DashIconify(icon="lucide:layout-dashboard", width=18, style={"marginRight": "10px", "marginBottom": "2px"}), "Ringkasan Eksekutif"], id="nav-main",   className="nav-btn active", n_clicks=0),
+                html.Button([DashIconify(icon="fa-solid:map-marker-alt", width=16, style={"marginRight": "10px", "marginBottom": "2px"}), "Peta Sebaran"],        id="nav-geomap", className="nav-btn", n_clicks=0),
+                html.Button([DashIconify(icon="fa-solid:users", width=16, style={"marginRight": "10px", "marginBottom": "2px"}), "Penduduk Usia Kerja"],  id="nav-puk",   className="nav-btn", n_clicks=0),
+                html.Button([DashIconify(icon="mdi:briefcase", width=18, style={"marginRight": "10px", "marginBottom": "2px"}), "Angkatan Kerja"],       id="nav-ak",    className="nav-btn", n_clicks=0),
+                html.Button([DashIconify(icon="fa-solid:frown-open", width=16, style={"marginRight": "10px", "marginBottom": "2px"}), "Pengangguran Terbuka"], id="nav-pt",    className="nav-btn", n_clicks=0),
+                html.Button([DashIconify(icon="la:industry-solid", width=18, style={"marginRight": "10px", "marginBottom": "2px"}), "Penduduk Bekerja"],     id="nav-pyb",   className="nav-btn", n_clicks=0),
+            ]),
+        ]),
+
+        html.Div(className="sidebar-section", style={"paddingTop": "10px"}, children=[
+            html.Div("Indikator Rasio", className="sidebar-label"),
+            html.Div(className="sidebar-nav", children=[
+                html.Button([DashIconify(icon="lucide:activity", width=18, style={"marginRight": "10px", "marginBottom": "2px"}), "TPAK"], id="nav-tpak",      className="nav-btn", n_clicks=0),
+                html.Button([DashIconify(icon="lucide:trending-down", width=18, style={"marginRight": "10px", "marginBottom": "2px"}), "TPT"],  id="nav-tpt_rasio",  className="nav-btn", n_clicks=0),
+                html.Button([DashIconify(icon="lucide:trending-up", width=18, style={"marginRight": "10px", "marginBottom": "2px"}), "EPR"],  id="nav-epr",        className="nav-btn", n_clicks=0),
             ]),
         ]),
 

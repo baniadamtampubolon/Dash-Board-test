@@ -108,6 +108,11 @@ Menyempurnakan dan menseragamkan tata letak visual berbagai grafik metrik agar t
 - **Restrukturisasi Eksternal Label Donut Chart:** Merapikan metrik-metrik profil gabungan yang sempit (Proporsi Kategori PT, Status Pekerjaan PYB, dan Status Aktivitas PUK) murni ke ekstensi `go.Pie` — memindah keterangan *legend* menjadi tulisan tegak melayang yang menempel di luar roda, memberikan teks keterangan *center-hole*, dipadu palet pewarnaan serasi (Teal, Oranye, Biru).
 - **Perbaikan Margin Padding:** Menambahkan injeksi nilai _margin right_ hingga `70px` dan membatalkan parameter _no_legend=False_ demi mengatasi terpotongnya deretan teks angka persen ganda di sisi kanan _container_ tabel.
 
+### 8. Restrukturisasi Navigasi Sidebar & Highlighting EWS ✅
+- **Pemindahan EWS:** Menu "Early Warning System" dipisahkan dari daftar Menu Utama dan dinaikkan letaknya menjadi sub-judul kategori mandiri bernama **"Peringatan Dini"** (tepat di bawah kendali _Filter Wilayah_). Susunan UX (*User Experience*) diperbaiki menjadi urutan [Filter Wilayah -> Peringatan Dini -> Menu Utama -> Indikator Rasio].
+- **EWS Alert Highlighting:** Menambahkan kelas pemformatan khusus (`.nav-ews-btn`) sehingga menu peringatan menyala kontras menggunakan paduan kuning pijar (*Amber/Gold* `#FBBF24`) dengan gradien bayangan saat _hover_ dan _active_.
+- **Revisi Presisi Warna:** Penyesuaian akhir skema *background* sidebar dengan memasukkan referensi solid kode hex `#15406A` pada awal pilar (*0% gradien*) turun berangsur-angsur menjadi nuansa navy ultra-pekat (`#0B2136`) pada dasar (*100% gradien*).
+
 ---
 
 ## Sesi 16 April 2026 — Integrasi Dataset Rasio
