@@ -35,35 +35,85 @@ def render_main(year, level, prov, kab):
 
     name = loc_name(level, prov, kab)
 
-    # ── Funnel chart (Sankey-style as treemap) ───────────────────────────────────
-    bak = max(0, v_puk - v_ak)
-    funnel_fig = go.Figure(go.Funnel(
-        y=["Penduduk Usia Kerja", "Angkatan Kerja", "Penduduk Bekerja"],
-        x=[v_puk, v_ak, v_pyb],
-        textinfo="value+percent initial",
-        texttemplate="%{value:,.0f}<br>(%{percentInitial:.1%})",
-        marker=dict(color=[PALETTE["navy"], PALETTE["blue"], PALETTE["teal"]]),
-        connector=dict(line=dict(width=1, color=PALETTE["border"])),
-        hovertemplate="<b>%{y}</b><br>%{x:,.0f} jiwa<extra></extra>",
-    ))
-    apply_chart(funnel_fig, height=320, no_legend=True)
-    funnel_fig.update_layout(title=None, margin=dict(l=80, r=20, t=20, b=20))
+    # ── Icicle Chart (Struktur Ketenagakerjaan) ──────────────────────────────────
+    v_sklh = int(data_puk['keg_sklh'].sum()) if 'keg_sklh' in data_puk.columns else 0
+    v_mrt = int(data_puk['keg_mrt'].sum()) if 'keg_mrt' in data_puk.columns else 0
+    v_lain = int(data_puk['keg_lain'].sum()) if 'keg_lain' in data_puk.columns else 0
+
+    val_ak = v_pyb + v_pt
+    val_bak = v_sklh + v_mrt + v_lain
+    # Jika data BAK tidak lengkap, fallback ke nilai total BAK:
+    if val_bak == 0:
+        val_bak = max(0, v_puk - val_ak)
+        v_lain = val_bak
+    
+    val_puk = val_ak + val_bak
+
+    # ── Custom HTML Icicle Chart (Struktur Ketenagakerjaan) ────────────────────
+    custom_icicle = html.Div(className="icicle-container", children=[
+        # Baris 1: PUK
+        html.Div(className="icicle-row", children=[
+            html.Div(className="icicle-box", style={"backgroundColor": "#0097A7", "flex": 1}, children=[
+                html.Div("PUK", className="icicle-title"),
+                html.Div(fmt_compact(val_puk), className="icicle-value")
+            ])
+        ]),
+        # Baris 2: AK & BAK
+        html.Div(className="icicle-row", children=[
+            html.Div(className="icicle-box", style={"backgroundColor": "#4F86F7", "flex": val_ak}, children=[
+                html.Div("AK", className="icicle-title"),
+                html.Div(fmt_compact(val_ak), className="icicle-value"),
+                html.Div(f"({val_ak/val_puk:.1%})", className="icicle-percent") if val_puk else None
+            ]),
+            html.Div(className="icicle-box", style={"backgroundColor": "#F97316", "flex": val_bak}, children=[
+                html.Div("BAK", className="icicle-title"),
+                html.Div(fmt_compact(val_bak), className="icicle-value"),
+                html.Div(f"({val_bak/val_puk:.1%})", className="icicle-percent") if val_puk else None
+            ])
+        ]),
+        # Baris 3: Rincian AK & BAK
+        html.Div(className="icicle-row", children=[
+            html.Div(className="icicle-subrow", style={"flex": val_ak}, children=[
+                html.Div(className="icicle-box", style={"backgroundColor": "#10B981", "flex": v_pyb}, children=[
+                    html.Div("PYB", className="icicle-title"),
+                    html.Div(fmt_compact(v_pyb), className="icicle-value")
+                ]),
+                html.Div(className="icicle-box", style={"backgroundColor": "#EF4444", "flex": v_pt}, children=[
+                    html.Div("PT", className="icicle-title"),
+                    html.Div(fmt_compact(v_pt), className="icicle-value")
+                ]),
+            ]),
+            html.Div(className="icicle-subrow", style={"flex": val_bak}, children=[
+                html.Div(className="icicle-box", style={"backgroundColor": "#9CA3AF", "flex": v_sklh}, children=[
+                    html.Div("Sekolah", className="icicle-title"),
+                    html.Div(fmt_compact(v_sklh), className="icicle-value")
+                ]),
+                html.Div(className="icicle-box", style={"backgroundColor": "#9CA3AF", "flex": v_mrt}, children=[
+                    html.Div("MRT", className="icicle-title"),
+                    html.Div(fmt_compact(v_mrt), className="icicle-value")
+                ]),
+                html.Div(className="icicle-box", style={"backgroundColor": "#9CA3AF", "flex": v_lain}, children=[
+                    html.Div("Lainnya", className="icicle-title"),
+                    html.Div(fmt_compact(v_lain), className="icicle-value")
+                ]),
+            ])
+        ])
+    ])
 
     # ── Donut: komposisi AK ──────────────────────────────────────────────────────
-    donut_fig = px.pie(
-        pd.DataFrame({"k": ["Bekerja", "Menganggur"], "v": [v_pyb, v_pt]}),
-        values="v", names="k", hole=0.65,
-        color_discrete_sequence=[PALETTE["teal"], PALETTE["red"]],
-    )
-    donut_fig.update_traces(
-        textposition="inside", textinfo="percent",
-        hovertemplate="<b>%{label}</b><br>%{value:,.0f}<extra></extra>",
-    )
-    apply_chart(donut_fig, height=300, no_legend=False)
+    donut_fig = go.Figure(go.Pie(
+        labels=["Bekerja", "Pengangguran"], values=[v_pyb, v_pt], hole=0.65,
+        marker=dict(colors=[PALETTE["teal"], PALETTE["red"]]),
+        textinfo='none', textposition='outside',
+        text=[f"Bekerja<br>{fmt_compact(v_pyb)}", f"Pengangguran<br>{fmt_compact(v_pt)}"],
+        texttemplate="%{text}",
+        hovertemplate="<b>%{label}</b><br>%{value:,.0f} jiwa<extra></extra>",
+    ))
     donut_fig.add_annotation(
         text=f"TPT<br><b>{tpr}%</b>", x=0.5, y=0.5,
         font=dict(size=14, color=PALETTE["text"]), showarrow=False,
     )
+    apply_chart(donut_fig, height=360, no_legend=True)
 
     # ── Bar: Top sektor ──────────────────────────────────────────────────────────
     lapus_map = {
@@ -114,6 +164,67 @@ def render_main(year, level, prov, kab):
         xaxis_title="Tahun", yaxis_title="Jumlah Jiwa",
     )
 
+    # ── Historical Table ─────────────────────────────────────────────────────────
+    years = sorted(df_puk['thn'].unique())
+    t_puk_full = trend_filter(df_puk, level, prov, kab).groupby('thn').sum(numeric_only=True).reset_index()
+    
+    def get_yearly_dict(df, val_col='total'):
+        if df.empty or val_col not in df.columns: return {y: 0 for y in years}
+        return dict(zip(df['thn'], df[val_col]))
+
+    y_puk = get_yearly_dict(t_puk_full, 'total')
+    y_ak  = get_yearly_dict(t_ak, 'total')
+    y_pyb = get_yearly_dict(t_pyb, 'total')
+    y_pt  = get_yearly_dict(t_pt, 'total')
+    y_sklh = get_yearly_dict(t_puk_full, 'keg_sklh')
+    y_mrt  = get_yearly_dict(t_puk_full, 'keg_mrt')
+    y_lain = get_yearly_dict(t_puk_full, 'keg_lain')
+    
+    y_bak = {y: max(0, y_puk.get(y,0) - y_ak.get(y,0)) for y in years}
+    y_tpak = {y: (y_ak.get(y,0) / y_puk.get(y,0) * 100) if y_puk.get(y,0) > 0 else 0 for y in years}
+    y_tpt  = {y: (y_pt.get(y,0) / y_ak.get(y,0) * 100) if y_ak.get(y,0) > 0 else 0 for y in years}
+    y_epr  = {y: (y_pyb.get(y,0) / y_puk.get(y,0) * 100) if y_puk.get(y,0) > 0 else 0 for y in years}
+
+    def fmt_n(v): return f"{v:,.0f}" if v > 0 else "-"
+    def fmt_p(v): return f"{v:.1f}%" if v > 0 else "-"
+
+    table_header = [
+        html.Thead([
+            html.Tr([
+                html.Th("KEGIATAN", rowSpan=2, className="align-middle text-center", style={"width": "22%"}),
+                html.Th("TAHUN", colSpan=len(years), className="text-center")
+            ]),
+            html.Tr([html.Th(str(y), className="text-center") for y in years])
+        ], className="hist-thead")
+    ]
+    
+    row_defs = [
+        ("PENDUDUK USIA KERJA", y_puk, fmt_n, "hist-parent"),
+        ("ANGKATAN KERJA", y_ak, fmt_n, "hist-parent"),
+        ("BEKERJA", y_pyb, fmt_n, "hist-child"),
+        ("PENGANGGUR", y_pt, fmt_n, "hist-child"),
+        ("BUKAN ANGKATAN KERJA", y_bak, fmt_n, "hist-parent"),
+        ("SEKOLAH", y_sklh, fmt_n, "hist-child"),
+        ("MENGURUS RUMAH TANGGA", y_mrt, fmt_n, "hist-child"),
+        ("LAINNYA", y_lain, fmt_n, "hist-child"),
+        ("TPAK (%)", y_tpak, fmt_p, "hist-ratio"),
+        ("TPT (%)", y_tpt, fmt_p, "hist-ratio"),
+        ("EPR (%)", y_epr, fmt_p, "hist-ratio"),
+    ]
+    
+    table_body = []
+    for label, ddict, ffunc, cls in row_defs:
+        tds = [html.Td(label, className=f"hist-label {cls}")]
+        for y in years:
+            tds.append(html.Td(ffunc(ddict.get(y, 0)), className=f"hist-val {cls} text-end"))
+        table_body.append(html.Tr(tds))
+        
+    hist_table = dbc.Table(
+        table_header + [html.Tbody(table_body)],
+        bordered=True, hover=True, responsive=True,
+        className="historical-table"
+    )
+
     return html.Div([
         html.Div(className="page-header", children=[
             html.Span(f"{loc(level,prov,kab)}  ·  {year}", className="page-badge"),
@@ -134,23 +245,36 @@ def render_main(year, level, prov, kab):
 
         section("Struktur Ketenagakerjaan"),
         dbc.Row([
-            dbc.Col(chart_card("Alur Partisipasi Tenaga Kerja",
-                               "Dari total penduduk usia kerja hingga yang bekerja",
-                               funnel_fig), md=8),
+            dbc.Col(html.Div(className="chart-card", children=[
+                html.Div("Alur Partisipasi Tenaga Kerja", className="chart-card-title"),
+                html.Div("Dari total penduduk usia kerja hingga yang bekerja", className="chart-card-sub"),
+                custom_icicle
+            ]), md=12),
+        ], className="g-3 mb-2"),
+
+        section("Penyerapan & Komposisi"),
+        dbc.Row([
+            dbc.Col(chart_card("Top Sektor Penyerap Tenaga Kerja",
+                               "Berdasarkan jumlah penduduk bekerja",
+                               bar_sektor), md=8),
             dbc.Col(chart_card("Komposisi Angkatan Kerja",
                                f"Tingkat Pengangguran Terbuka (TPT): {tpr}%",
                                donut_fig), md=4),
         ], className="g-3 mb-2"),
 
-        section("Penyerapan & Distribusi"),
+        section("Dinamika & Tren"),
         dbc.Row([
-            dbc.Col(chart_card("Top Sektor Penyerap Tenaga Kerja",
-                               "Berdasarkan jumlah penduduk bekerja",
-                               bar_sektor), md=6),
             dbc.Col(chart_card(f"Tren Ketenagakerjaan — {loc(level,prov,kab)}",
                                "Data 2018–2025",
-                               trend_fig), md=6),
+                               trend_fig), md=12),
         ], className="g-3 mb-2"),
+
+        section("Rekapitulasi Data Historis"),
+        dbc.Row([
+            dbc.Col(html.Div(className="chart-card", style={"padding": "16px 20px"}, children=[
+                hist_table
+            ]), md=12),
+        ], className="g-3 mb-4"),
 
         html.Div(
             f"Dashboard Ketenagakerjaan Nasional 2018–2025  ·  Kementerian Ketenagakerjaan RI",
