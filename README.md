@@ -70,7 +70,7 @@ Buka browser: http://localhost:8050
 
 ### 5 Halaman
 
-1. **Ringkasan Eksekutif** — KPI 4 kartu, Funnel chart, Donut komposisi, Bar sektor, Multi-line trend
+1. **Ringkasan Ketenagakerjaan** — KPI 4 kartu, Funnel chart, Donut komposisi, Bar sektor, Multi-line trend
 2. **Penduduk Usia Kerja (PUK)** — Piramida usia/gender, Status aktivitas, Treemap pendidikan, Trend
 3. **Angkatan Kerja (AK)** — Bar usia per gender, Perbandingan gender, Pendidikan, Trend
 4. **Pengangguran Terbuka (PT)** — Bar kategori, Sunburst, Area chart usia, Multi-line trend

@@ -10,6 +10,7 @@ import pandas as pd
 from design import PALETTE, SEQ, apply_chart
 from data_loader import load_data, filter_data, trend_filter
 from components import kpi_card, chart_card, section, fmt_compact, loc
+from map_helper import build_geomap_layout
 
 
 # ══════════════════════════════════════════════════════════════════════════════════
@@ -130,6 +131,8 @@ def render_puk(year, level, prov, kab):
         margin=dict(l=48, r=48, t=48, b=40),
     )
 
+    map_section, top_bottom_section, rank_section = build_geomap_layout(df_puk, year, 'PUK')
+
     return html.Div([
         html.Div(className="page-header", children=[
             html.Span(f"{loc(level,prov,kab)}  ·  {year}", className="page-badge"),
@@ -142,6 +145,9 @@ def render_puk(year, level, prov, kab):
             dbc.Col(kpi_card(DashIconify(icon="fa-solid:frown-open", width=24),  "Pengangguran Terbuka", fmt_compact(unemployed),PALETTE["red"],   f"{PALETTE['red']}14"),   md=3),
             dbc.Col(kpi_card(DashIconify(icon="fa-solid:home", width=24), "Bukan Angkatan Kerja", fmt_compact(bak),      PALETTE["muted"],  "#7A8BAA14"),              md=3),
         ], className="g-3 mb-2"),
+
+        map_section,
+        top_bottom_section,
 
         section("Profil Demografis"),
         dbc.Row([
@@ -161,4 +167,6 @@ def render_puk(year, level, prov, kab):
             dbc.Col(chart_card("Tren PUK 2018–2025",
                                f"Perkembangan historis — {loc(level,prov,kab)}", trend), md=12),
         ], className="g-3"),
+        
+        rank_section
     ])

@@ -23,7 +23,7 @@ Memecah file `app.py` (1.712 baris) menjadi **12 file modular**:
 | `design.py` (~325 baris) | PALETTE, SEQ, CHART, apply_chart(), CUSTOM_CSS |
 | `data_loader.py` (~135 baris) | load_data(), fix_ratio(), filter_data(), load_geojson() |
 | `components.py` (~164 baris) | make_sidebar(), kpi_card(), chart_card(), section(), fmt_compact() |
-| `pages/main.py` | Ringkasan Eksekutif |
+| `pages/main.py` | Ringkasan Ketenagakerjaan |
 | `pages/geomap.py` | Peta Sebaran (choropleth + callback) |
 | `pages/ews.py` | Early Warning System (3 mode chart + callback) |
 | `pages/puk.py` | Penduduk Usia Kerja |
@@ -113,6 +113,12 @@ Menyempurnakan dan menseragamkan tata letak visual berbagai grafik metrik agar t
 - **EWS Alert Highlighting:** Menambahkan kelas pemformatan khusus (`.nav-ews-btn`) sehingga menu peringatan menyala kontras menggunakan paduan kuning pijar (*Amber/Gold* `#FBBF24`) dengan gradien bayangan saat _hover_ dan _active_.
 - **Revisi Presisi Warna:** Penyesuaian akhir skema *background* sidebar dengan memasukkan referensi solid kode hex `#15406A` pada awal pilar (*0% gradien*) turun berangsur-angsur menjadi nuansa navy ultra-pekat (`#0B2136`) pada dasar (*100% gradien*).
 
+### 9. Perombakan UI Ringkasan Ketenagakerjaan & Tabel Matriks Historis ✅
+- **Kustomisasi Bagan Alur Partisipasi (Icicle Grid):** Mengganti komponen bawaan `go.Funnel` yang statis menjadi susunan HTML/CSS Grid kustom yang membentuk tata letak blok (*Icicle Layout*) berdimensi lebar penuh (*full-width*). Bagan baru ini berhasil memunculkan secara eksplisit rincian metrik BAK (Sekolah, MRT, Lainnya) dengan desain sudut *rounded* yang sangat modern, teks di tengah, dan ruang pembatas grid putih tebal.
+- **Restrukturisasi Formasi Dasbor:** Merapikan formasi letak baris (*row*) Ringkasan Ketenagakerjaan agar menyesuaikan hierarki pembacaan: Baris 1 ditempati Peta Alur Ketenagakerjaan Penuh, Baris 2 memuat Top Sektor & Donut AK secara bersisian, dan Baris 3 difokuskan khusus untuk kurva Dinamika & Tren.
+- **Standardisasi Donut AK:** Konversi gaya diagram lingkaran ke tipe `go.Pie` berekstensi label luar, melenyapkan tab *legend* agar selaras dengan dasbor rasio.
+- **Injeksi Tabel Data Historis (2018-2025):** Menyematkan tabel matriks transparan super responsif pada baris pamungkas. Tabel ini disetel agar mendemonstrasikan angka asli dengan *comma-separated* yang merangkum detail data historis PUK, AK, BAK beserta komponen sub-kegiatannya dari agregat seluruh 8 tahun data secara *real-time* berbasis _filter_ wilayah.
+
 ---
 
 ## Sesi 16 April 2026 — Integrasi Dataset Rasio
@@ -130,6 +136,20 @@ Tiga indikator rasio utama dengan dataset versi terbaru (`ver2.xlsx`):
 ### 3. Desain UI & Visualisasi
 - Line Chart (Age Groups), Donut Charts (Gender & Wilayah)
 - Full-Width Trend Section, penyesuaian padding & margin
+
+---
+
+## Sesi 27 April 2026 — Modularisasi GeoMap & Restrukturisasi UI
+
+### 1. Modularisasi GeoMap
+- **Penghapusan Peta Standalone:** Menghapus halaman mandiri `geomap.py` beserta tab navigasi "Peta Sebaran" di *sidebar*.
+- **Pembuatan `map_helper.py`:** Memindahkan logika rendering peta Spasial ke utilitas baru yang memecah visualisasi menjadi tiga bagian independen: Peta Choropleth Utama, Kartu KPI Top/Bottom, dan Grafik Ranking.
+- **Injeksi Indikator:** Menyuntikkan ketiga komponen peta tersebut langsung ke dalam halaman setiap indikator (`puk.py`, `ak.py`, `pt.py`, `pyb.py`, `ratio.py`) dengan urutan hierarki yang dioptimalkan (Peta diletakkan setelah *Ban Chart*, dan Grafik Ranking dipaku di bagian paling bawah).
+
+### 2. Peningkatan Ringkasan Ketenagakerjaan (`main.py`)
+- **Highlight Struktur Ketenagakerjaan:** Menerapkan prinsip *Gestalt* dan psikologi warna pada grafik Alur Partisipasi (*Icicle Chart*). Angkatan Kerja (Bekerja & Pengangguran) dikelompokkan secara visual dalam kontainer biru, sementara Bukan Angkatan Kerja (Sekolah, MRT, Lainnya) dikelompokkan dalam kontainer abu-abu netral.
+- **Kompaktifikasi Ban Chart:** Menyatukan 4 metrik absolut utama dan 3 metrik rasio (TPAK, TPT, EPR) ke dalam satu baris horizontal memanjang yang elegan (`kpi-row-compact`).
+- **Re-ordering Layout:** Menukar tata letak agar tabel matriks "Rekapitulasi Data Historis" tampil lebih dulu sebelum grafik "Dinamika & Tren".
 
 ---
 
@@ -153,9 +173,9 @@ Mono:    'JetBrains Mono', 'IBM Plex Mono', monospace
 ├── design.py           ← Palet warna, font, CSS, chart config
 ├── data_loader.py      ← Load data, filter, GeoJSON
 ├── components.py       ← Sidebar, KPI card, chart card
+├── map_helper.py       ← Helper module untuk GeoMap & Ranking
 ├── pages/
-│   ├── main.py         ← Ringkasan Eksekutif
-│   ├── geomap.py       ← Peta Sebaran (choropleth + callback)
+│   ├── main.py         ← Ringkasan Ketenagakerjaan
 │   ├── ews.py          ← Early Warning System (3 mode + callback)
 │   ├── puk.py          ← Penduduk Usia Kerja
 │   ├── ak.py           ← Angkatan Kerja

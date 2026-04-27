@@ -85,18 +85,11 @@ def make_sidebar():
 
         html.Hr(className="sidebar-divider"),
 
-        html.Div(className="sidebar-section", children=[
-            html.Div("Peringatan Dini", className="sidebar-label"),
-            html.Div(className="sidebar-nav", children=[
-                html.Button([DashIconify(icon="lucide:alert-triangle", width=18, style={"marginRight": "10px", "marginBottom": "2px"}), "Early Warning System"], id="nav-ews",   className="nav-btn nav-ews-btn", n_clicks=0),
-            ]),
-        ]),
-
         html.Div(className="sidebar-section", style={"paddingTop": "10px"}, children=[
             html.Div("Menu Utama", className="sidebar-label"),
             html.Div(className="sidebar-nav", children=[
-                html.Button([DashIconify(icon="lucide:layout-dashboard", width=18, style={"marginRight": "10px", "marginBottom": "2px"}), "Ringkasan Eksekutif"], id="nav-main",   className="nav-btn active", n_clicks=0),
-                html.Button([DashIconify(icon="fa-solid:map-marker-alt", width=16, style={"marginRight": "10px", "marginBottom": "2px"}), "Peta Sebaran"],        id="nav-geomap", className="nav-btn", n_clicks=0),
+                html.Button([DashIconify(icon="lucide:layout-dashboard", width=18, style={"marginRight": "10px", "marginBottom": "2px"}), "Ringkasan Ketenagakerjaan"], id="nav-main",   className="nav-btn active", n_clicks=0),
+                html.Button([DashIconify(icon="lucide:alert-triangle", width=18, style={"marginRight": "10px", "marginBottom": "2px"}), "Early Warning System"], id="nav-ews",   className="nav-btn nav-ews-btn", n_clicks=0),
                 html.Button([DashIconify(icon="fa-solid:users", width=16, style={"marginRight": "10px", "marginBottom": "2px"}), "Penduduk Usia Kerja"],  id="nav-puk",   className="nav-btn", n_clicks=0),
                 html.Button([DashIconify(icon="mdi:briefcase", width=18, style={"marginRight": "10px", "marginBottom": "2px"}), "Angkatan Kerja"],       id="nav-ak",    className="nav-btn", n_clicks=0),
                 html.Button([DashIconify(icon="fa-solid:frown-open", width=16, style={"marginRight": "10px", "marginBottom": "2px"}), "Pengangguran Terbuka"], id="nav-pt",    className="nav-btn", n_clicks=0),

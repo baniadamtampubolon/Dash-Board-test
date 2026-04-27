@@ -10,6 +10,7 @@ import pandas as pd
 from design import PALETTE, SEQ, apply_chart
 from data_loader import load_data, filter_data, trend_filter
 from components import kpi_card, chart_card, section, fmt_compact, loc
+from map_helper import build_geomap_layout
 
 
 # ══════════════════════════════════════════════════════════════════════════════════
@@ -117,6 +118,8 @@ def _build_ratio_page(df, data, year, level, prov, kab, *,
     apply_chart(kd_fig, height=300, no_legend=True)
     kd_fig.update_layout(xaxis_title="", yaxis_title="", margin=dict(l=10, r=70, t=10, b=10))
 
+    map_section, top_bottom_section, rank_section = build_geomap_layout(df, year, label_short)
+
     # ── Assemble page ────────────────────────────────────────────────────────
     return html.Div([
         html.Div(className="page-header", children=[
@@ -132,6 +135,9 @@ def _build_ratio_page(df, data, year, level, prov, kab, *,
             dbc.Col(kpi_card(DashIconify(icon="ion:female", width=24), f"{label_short} Perempuan", f"{v_pr:.2f}%",
                              "#E91E8C", "#E91E8C14"), md=4),
         ], className="g-3 mb-2"),
+
+        map_section,
+        top_bottom_section,
 
         section("Profil Demografis"),
         dbc.Row([
@@ -154,6 +160,8 @@ def _build_ratio_page(df, data, year, level, prov, kab, *,
                                f"Perkembangan historis — {loc(level,prov,kab)}",
                                trend_fig), md=12),
         ], className="g-3"),
+        
+        rank_section
     ])
 
 

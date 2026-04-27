@@ -10,6 +10,7 @@ import pandas as pd
 from design import PALETTE, SEQ, apply_chart
 from data_loader import load_data, filter_data, trend_filter
 from components import kpi_card, chart_card, section, fmt_compact, loc
+from map_helper import build_geomap_layout
 
 
 # ══════════════════════════════════════════════════════════════════════════════════
@@ -128,6 +129,8 @@ def render_pt(year, level, prov, kab):
         margin=dict(l=48, r=48, t=48, b=40),
     )
 
+    map_section, top_bottom_section, rank_section = build_geomap_layout(df, year, 'PT')
+
     return html.Div([
         html.Div(className="page-header", children=[
             html.Span(f"{loc(level,prov,kab)}  ·  {year}", className="page-badge"),
@@ -141,6 +144,9 @@ def render_pt(year, level, prov, kab):
                              fmt_compact(pt_vals[0]) if pt_vals else "—",
                              PALETTE["navy"], f"{PALETTE['navy']}14"), md=4),
         ], className="g-3 mb-2"),
+
+        map_section,
+        top_bottom_section,
 
         section("Distribusi Pengangguran"),
         dbc.Row([
@@ -160,4 +166,6 @@ def render_pt(year, level, prov, kab):
             dbc.Col(chart_card("Tren Pengangguran 2018–2025",
                                f"Perkembangan historis — {loc(level,prov,kab)}", trend_fig), md=12),
         ], className="g-3"),
+        
+        rank_section
     ])

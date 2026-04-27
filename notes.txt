@@ -47,7 +47,7 @@
 # 2) Sebagai bagian tombol sidebar:
 #    html.Button([
 #        DashIconify(icon="fa-solid:chart-line", width=16, style={"marginRight": "8px"}),
-#        "Ringkasan Eksekutif"
+#        "Ringkasan Ketenagakerjaan"
 #    ], id="nav-main", className="nav-btn")
 #
 # 3) Standalone di layout:

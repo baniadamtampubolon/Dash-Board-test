@@ -422,7 +422,7 @@ def make_sidebar():
         html.Div(className="sidebar-section", children=[
             html.Div("Data Absolut", className="sidebar-label"),
             html.Div(className="sidebar-nav", children=[
-                html.Button(["📊 ", "Ringkasan Eksekutif"], id="nav-main", className="nav-btn active", n_clicks=0),
+                html.Button(["📊 ", "Ringkasan Ketenagakerjaan"], id="nav-main", className="nav-btn active", n_clicks=0),
                 html.Button(["👥 ", "Penduduk Usia Kerja"], id="nav-puk",  className="nav-btn", n_clicks=0),
                 html.Button(["💼 ", "Angkatan Kerja"],       id="nav-ak",   className="nav-btn", n_clicks=0),
                 html.Button(["❌ ", "Pengangguran Terbuka"], id="nav-pt",   className="nav-btn", n_clicks=0),
@@ -662,7 +662,7 @@ def trend_filter(df, level, prov, kab):
 
 
 # ══════════════════════════════════════════════════════════════════════════════════
-#  PAGE: RINGKASAN EKSEKUTIF
+#  PAGE: Ringkasan Ketenagakerjaan
 # ══════════════════════════════════════════════════════════════════════════════════
 def render_main(year, level, prov, kab):
     df_puk = load_data("Database/PUK-2018-2025-ver2.xlsx")
@@ -766,7 +766,7 @@ def render_main(year, level, prov, kab):
     return html.Div([
         html.Div(className="page-header", children=[
             html.Span(f"📍 {loc(level,prov,kab)}  ·  📅 {year}", className="page-badge"),
-            html.H1("Ringkasan Eksekutif Ketenagakerjaan", className="page-title"),
+            html.H1("Ringkasan Ketenagakerjaan Ketenagakerjaan", className="page-title"),
             html.P("Gambaran menyeluruh kondisi ketenagakerjaan nasional", className="page-subtitle"),
         ]),
 
@@ -781,9 +781,9 @@ def render_main(year, level, prov, kab):
                              PALETTE["red"], f"{PALETTE['red']}14"), md=3),
         ], className="g-3 mb-2"),
 
-        section("Struktur Ketenagakerjaan"),
+        section("Indikator Utama"),
         dbc.Row([
-            dbc.Col(chart_card("Alur Partisipasi Tenaga Kerja",
+            dbc.Col(chart_card("Struktur Ketenagakerjaan",
                                "Dari total penduduk usia kerja hingga yang bekerja",
                                funnel_fig), md=8),
             dbc.Col(chart_card("Komposisi Angkatan Kerja",

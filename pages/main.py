@@ -1,4 +1,4 @@
-"""Ringkasan Eksekutif page."""
+"""Ringkasan Ketenagakerjaan page."""
 
 from dash import dcc, html
 from dash_iconify import DashIconify
@@ -13,7 +13,7 @@ from components import kpi_card, chart_card, section, fmt_compact, loc, loc_name
 
 
 # ══════════════════════════════════════════════════════════════════════════════════
-#  PAGE: RINGKASAN EKSEKUTIF
+#  PAGE: Ringkasan Ketenagakerjaan
 # ══════════════════════════════════════════════════════════════════════════════════
 def render_main(year, level, prov, kab):
     df_puk = load_data("Database/PUK-2018-2025-ver2.xlsx")
@@ -35,7 +35,7 @@ def render_main(year, level, prov, kab):
 
     name = loc_name(level, prov, kab)
 
-    # ── Icicle Chart (Struktur Ketenagakerjaan) ──────────────────────────────────
+    # ── Icicle Chart (Indikator Utama) ──────────────────────────────────
     v_sklh = int(data_puk['keg_sklh'].sum()) if 'keg_sklh' in data_puk.columns else 0
     v_mrt = int(data_puk['keg_mrt'].sum()) if 'keg_mrt' in data_puk.columns else 0
     v_lain = int(data_puk['keg_lain'].sum()) if 'keg_lain' in data_puk.columns else 0
@@ -48,94 +48,66 @@ def render_main(year, level, prov, kab):
         v_lain = val_bak
     
     val_puk = val_ak + val_bak
+    epr = round(v_pyb / val_puk * 100, 2) if val_puk > 0 else 0
 
-    # ── Custom HTML Icicle Chart (Struktur Ketenagakerjaan) ────────────────────
+    # ── Custom HTML Icicle Chart (Indikator Utama) ────────────────────
     custom_icicle = html.Div(className="icicle-container", children=[
-        # Baris 1: PUK
+        # Baris 1: PUK (Root)
         html.Div(className="icicle-row", children=[
-            html.Div(className="icicle-box", style={"backgroundColor": "#0097A7", "flex": 1}, children=[
-                html.Div("PUK", className="icicle-title"),
+            html.Div(className="icicle-box", style={"backgroundColor": "#0D1B2E", "flex": 1}, children=[
+                html.Div("Penduduk Usia Kerja (PUK)", className="icicle-title"),
                 html.Div(fmt_compact(val_puk), className="icicle-value")
             ])
         ]),
-        # Baris 2: AK & BAK
+        
+        # Baris 2: Cabang Utama (Grup AK & Grup BAK)
         html.Div(className="icicle-row", children=[
-            html.Div(className="icicle-box", style={"backgroundColor": "#4F86F7", "flex": val_ak}, children=[
-                html.Div("AK", className="icicle-title"),
-                html.Div(fmt_compact(val_ak), className="icicle-value"),
-                html.Div(f"({val_ak/val_puk:.1%})", className="icicle-percent") if val_puk else None
+            
+            # ── GRUP ANGKATAN KERJA ──
+            html.Div(className="icicle-group icicle-group-ak", style={"flex": val_ak}, children=[
+                html.Div(className="icicle-box", style={"backgroundColor": PALETTE["blue"]}, children=[
+                    html.Div("Angkatan Kerja (AK)", className="icicle-title"),
+                    html.Div(fmt_compact(val_ak), className="icicle-value"),
+                    html.Div(f"({val_ak/val_puk:.1%})", className="icicle-percent") if val_puk else None
+                ]),
+                html.Div(className="icicle-subrow", children=[
+                    html.Div(className="icicle-box", style={"backgroundColor": PALETTE["teal"], "flex": v_pyb}, children=[
+                        html.Div("Bekerja (PYB)", className="icicle-title"),
+                        html.Div(fmt_compact(v_pyb), className="icicle-value"),
+                        html.Div(f"({v_pyb/val_ak:.1%})", className="icicle-percent") if val_ak else None
+                    ]),
+                    html.Div(className="icicle-box", style={"backgroundColor": PALETTE["red"], "flex": v_pt}, children=[
+                        html.Div("Pengangguran (PT)", className="icicle-title"),
+                        html.Div(fmt_compact(v_pt), className="icicle-value"),
+                        html.Div(f"({v_pt/val_ak:.1%})", className="icicle-percent") if val_ak else None
+                    ]),
+                ])
             ]),
-            html.Div(className="icicle-box", style={"backgroundColor": "#F97316", "flex": val_bak}, children=[
-                html.Div("BAK", className="icicle-title"),
-                html.Div(fmt_compact(val_bak), className="icicle-value"),
-                html.Div(f"({val_bak/val_puk:.1%})", className="icicle-percent") if val_puk else None
-            ])
-        ]),
-        # Baris 3: Rincian AK & BAK
-        html.Div(className="icicle-row", children=[
-            html.Div(className="icicle-subrow", style={"flex": val_ak}, children=[
-                html.Div(className="icicle-box", style={"backgroundColor": "#10B981", "flex": v_pyb}, children=[
-                    html.Div("PYB", className="icicle-title"),
-                    html.Div(fmt_compact(v_pyb), className="icicle-value")
+
+            # ── GRUP BUKAN ANGKATAN KERJA ──
+            html.Div(className="icicle-group icicle-group-bak", style={"flex": val_bak}, children=[
+                html.Div(className="icicle-box", style={"backgroundColor": "#7A8BAA"}, children=[
+                    html.Div("Bukan Angkatan Kerja (BAK)", className="icicle-title"),
+                    html.Div(fmt_compact(val_bak), className="icicle-value"),
+                    html.Div(f"({val_bak/val_puk:.1%})", className="icicle-percent") if val_puk else None
                 ]),
-                html.Div(className="icicle-box", style={"backgroundColor": "#EF4444", "flex": v_pt}, children=[
-                    html.Div("PT", className="icicle-title"),
-                    html.Div(fmt_compact(v_pt), className="icicle-value")
-                ]),
-            ]),
-            html.Div(className="icicle-subrow", style={"flex": val_bak}, children=[
-                html.Div(className="icicle-box", style={"backgroundColor": "#9CA3AF", "flex": v_sklh}, children=[
-                    html.Div("Sekolah", className="icicle-title"),
-                    html.Div(fmt_compact(v_sklh), className="icicle-value")
-                ]),
-                html.Div(className="icicle-box", style={"backgroundColor": "#9CA3AF", "flex": v_mrt}, children=[
-                    html.Div("MRT", className="icicle-title"),
-                    html.Div(fmt_compact(v_mrt), className="icicle-value")
-                ]),
-                html.Div(className="icicle-box", style={"backgroundColor": "#9CA3AF", "flex": v_lain}, children=[
-                    html.Div("Lainnya", className="icicle-title"),
-                    html.Div(fmt_compact(v_lain), className="icicle-value")
-                ]),
+                html.Div(className="icicle-subrow", children=[
+                    html.Div(className="icicle-box", style={"backgroundColor": "#94A3B8", "flex": v_sklh}, children=[
+                        html.Div("Sekolah", className="icicle-title"),
+                        html.Div(fmt_compact(v_sklh), className="icicle-value")
+                    ]),
+                    html.Div(className="icicle-box", style={"backgroundColor": "#94A3B8", "flex": v_mrt}, children=[
+                        html.Div("Mengurus RT", className="icicle-title"),
+                        html.Div(fmt_compact(v_mrt), className="icicle-value")
+                    ]),
+                    html.Div(className="icicle-box", style={"backgroundColor": "#94A3B8", "flex": v_lain}, children=[
+                        html.Div("Lainnya", className="icicle-title"),
+                        html.Div(fmt_compact(v_lain), className="icicle-value")
+                    ]),
+                ])
             ])
         ])
     ])
-
-    # ── Donut: komposisi AK ──────────────────────────────────────────────────────
-    donut_fig = go.Figure(go.Pie(
-        labels=["Bekerja", "Pengangguran"], values=[v_pyb, v_pt], hole=0.65,
-        marker=dict(colors=[PALETTE["teal"], PALETTE["red"]]),
-        textinfo='none', textposition='outside',
-        text=[f"Bekerja<br>{fmt_compact(v_pyb)}", f"Pengangguran<br>{fmt_compact(v_pt)}"],
-        texttemplate="%{text}",
-        hovertemplate="<b>%{label}</b><br>%{value:,.0f} jiwa<extra></extra>",
-    ))
-    donut_fig.add_annotation(
-        text=f"TPT<br><b>{tpr}%</b>", x=0.5, y=0.5,
-        font=dict(size=14, color=PALETTE["text"]), showarrow=False,
-    )
-    apply_chart(donut_fig, height=360, no_legend=True)
-
-    # ── Bar: Top sektor ──────────────────────────────────────────────────────────
-    lapus_map = {
-        'lapus_A': 'Pertanian', 'lapus_B': 'Pertambangan', 'lapus_C': 'Industri',
-        'lapus_D': 'Listrik', 'lapus_F': 'Konstruksi', 'lapus_G': 'Perdagangan',
-        'lapus_H': 'Transportasi', 'lapus_I': 'Akomodasi', 'lapus_J': 'IT/Kominfo',
-        'lapus_P': 'Pendidikan', 'lapus_Q': 'Kesehatan', 'lapus_RSTU': 'Jasa Lainnya',
-    }
-    lv = [(lapus_map[c], int(data_pyb[c].sum())) for c in lapus_map if c in data_pyb.columns]
-    ldf = pd.DataFrame(lv, columns=['Sektor', 'Jumlah']).sort_values('Jumlah').tail(8)
-    bar_sektor = px.bar(
-        ldf, x='Jumlah', y='Sektor', orientation='h',
-        color='Jumlah', color_continuous_scale=["#AED6F1", PALETTE["blue"], PALETTE["navy"]],
-        text=[fmt_compact(v) for v in ldf['Jumlah']],
-    )
-    bar_sektor.update_traces(
-        textposition='outside', textfont_size=10,
-        hovertemplate="<b>%{y}</b><br>%{x:,.0f}<extra></extra>",
-    )
-    bar_sektor.update_coloraxes(showscale=False)
-    apply_chart(bar_sektor, height=360)
-    bar_sektor.update_layout(xaxis_title="", yaxis_title="")
 
     # ── Multi-line trend ──────────────────────────────────────────────────────────
     t_puk = trend_filter(df_puk, level, prov, kab).groupby('thn')['total'].sum().reset_index()
@@ -228,38 +200,40 @@ def render_main(year, level, prov, kab):
     return html.Div([
         html.Div(className="page-header", children=[
             html.Span(f"{loc(level,prov,kab)}  ·  {year}", className="page-badge"),
-            html.H1("Ringkasan Eksekutif Ketenagakerjaan", className="page-title"),
-            html.P("Gambaran menyeluruh kondisi ketenagakerjaan nasional", className="page-subtitle"),
+            html.H1("Ringkasan Ketenagakerjaan", className="page-title"),
+            html.P("Gambaran menyeluruh kondisi ketenagakerjaan", className="page-subtitle"),
         ]),
 
         dbc.Row([
-            dbc.Col(kpi_card(DashIconify(icon="fa-solid:users", width=24), "Penduduk Usia Kerja", f"{fmt_compact(v_puk)}",
-                             PALETTE["indigo"], f"{PALETTE['indigo']}14"), md=3),
-            dbc.Col(kpi_card(DashIconify(icon="mdi:briefcase", width=24), "Angkatan Kerja", f"{fmt_compact(v_ak)}  ({tpak:.1f}%)",
-                             PALETTE["blue"], f"{PALETTE['blue']}14"), md=3),
-            dbc.Col(kpi_card(DashIconify(icon="la:industry-solid", width=26), "Penduduk Bekerja", fmt_compact(v_pyb),
-                             PALETTE["teal"], f"{PALETTE['teal']}14"), md=3),
-            dbc.Col(kpi_card(DashIconify(icon="fa-solid:frown-open", width=24), "Pengangguran Terbuka", f"{fmt_compact(v_pt)}  (TPT {tpr}%)",
-                             PALETTE["red"], f"{PALETTE['red']}14"), md=3),
-        ], className="g-3 mb-2"),
+            dbc.Col(kpi_card(DashIconify(icon="fa-solid:users", width=18), "PUK", f"{fmt_compact(v_puk)}",
+                             PALETTE["indigo"], f"{PALETTE['indigo']}14")),
+            dbc.Col(kpi_card(DashIconify(icon="mdi:briefcase", width=18), "Angkatan Kerja", f"{fmt_compact(v_ak)}",
+                             PALETTE["blue"], f"{PALETTE['blue']}14")),
+            dbc.Col(kpi_card(DashIconify(icon="la:industry-solid", width=18), "Bekerja", fmt_compact(v_pyb),
+                             PALETTE["teal"], f"{PALETTE['teal']}14")),
+            dbc.Col(kpi_card(DashIconify(icon="fa-solid:frown-open", width=18), "Pengangguran", f"{fmt_compact(v_pt)}",
+                             PALETTE["red"], f"{PALETTE['red']}14")),
+            dbc.Col(kpi_card(DashIconify(icon="lucide:activity", width=18), "TPAK", f"{tpak:.2f}%",
+                             PALETTE["blue"], f"{PALETTE['blue']}14")),
+            dbc.Col(kpi_card(DashIconify(icon="lucide:trending-down", width=18), "TPT", f"{tpr:.2f}%",
+                             PALETTE["gold"], f"{PALETTE['gold']}14")),
+            dbc.Col(kpi_card(DashIconify(icon="lucide:trending-up", width=18), "EPR", f"{epr:.2f}%",
+                             PALETTE["teal"], f"{PALETTE['teal']}14")),
+        ], className="g-2 mb-4 kpi-row-compact"),
 
-        section("Struktur Ketenagakerjaan"),
+        section("Indikator Utama"),
         dbc.Row([
             dbc.Col(html.Div(className="chart-card", children=[
-                html.Div("Alur Partisipasi Tenaga Kerja", className="chart-card-title"),
+                html.Div("Struktur Ketenagakerjaan", className="chart-card-title"),
                 html.Div("Dari total penduduk usia kerja hingga yang bekerja", className="chart-card-sub"),
                 custom_icicle
             ]), md=12),
         ], className="g-3 mb-2"),
-
-        section("Penyerapan & Komposisi"),
+        section("Rekapitulasi Data Historis"),
         dbc.Row([
-            dbc.Col(chart_card("Top Sektor Penyerap Tenaga Kerja",
-                               "Berdasarkan jumlah penduduk bekerja",
-                               bar_sektor), md=8),
-            dbc.Col(chart_card("Komposisi Angkatan Kerja",
-                               f"Tingkat Pengangguran Terbuka (TPT): {tpr}%",
-                               donut_fig), md=4),
+            dbc.Col(html.Div(className="chart-card", style={"padding": "16px 20px"}, children=[
+                hist_table
+            ]), md=12),
         ], className="g-3 mb-2"),
 
         section("Dinamika & Tren"),
@@ -267,13 +241,6 @@ def render_main(year, level, prov, kab):
             dbc.Col(chart_card(f"Tren Ketenagakerjaan — {loc(level,prov,kab)}",
                                "Data 2018–2025",
                                trend_fig), md=12),
-        ], className="g-3 mb-2"),
-
-        section("Rekapitulasi Data Historis"),
-        dbc.Row([
-            dbc.Col(html.Div(className="chart-card", style={"padding": "16px 20px"}, children=[
-                hist_table
-            ]), md=12),
         ], className="g-3 mb-4"),
 
         html.Div(

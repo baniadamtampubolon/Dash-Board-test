@@ -10,6 +10,7 @@ import pandas as pd
 from design import PALETTE, SEQ, apply_chart
 from data_loader import load_data, filter_data, trend_filter
 from components import kpi_card, chart_card, section, fmt_compact, loc
+from map_helper import build_geomap_layout
 
 
 # ══════════════════════════════════════════════════════════════════════════════════
@@ -107,6 +108,8 @@ def render_ak(year, level, prov, kab):
         xaxis=dict(range=[int(t['thn'].min()) - 0.4, int(t['thn'].max()) + 0.4]) if not t.empty else {},
     )
 
+    map_section, top_bottom_section, rank_section = build_geomap_layout(df, year, 'AK')
+
     return html.Div([
         html.Div(className="page-header", children=[
             html.Span(f"{loc(level,prov,kab)}  ·  {year}", className="page-badge"),
@@ -118,6 +121,9 @@ def render_ak(year, level, prov, kab):
             dbc.Col(kpi_card(DashIconify(icon="ion:male", width=24), "Laki-laki", f"{fmt_compact(lk)} ({lk/(lk+pr)*100:.1f}%)" if (lk+pr)>0 else "—", PALETTE["indigo"], f"{PALETTE['indigo']}14"), md=4),
             dbc.Col(kpi_card(DashIconify(icon="ion:female", width=24), "Perempuan",  f"{fmt_compact(pr)} ({pr/(lk+pr)*100:.1f}%)" if (lk+pr)>0 else "—", "#E91E8C", "#E91E8C14"), md=4),
         ], className="g-3 mb-2"),
+
+        map_section,
+        top_bottom_section,
 
         section("Profil Angkatan Kerja"),
         dbc.Row([
@@ -136,4 +142,6 @@ def render_ak(year, level, prov, kab):
             dbc.Col(chart_card("Tren Angkatan Kerja 2018–2025",
                                f"Perkembangan historis — {loc(level,prov,kab)}", trend_fig), md=12),
         ], className="g-3"),
+        
+        rank_section
     ])

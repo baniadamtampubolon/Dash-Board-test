@@ -10,6 +10,7 @@ import pandas as pd
 from design import PALETTE, SEQ, apply_chart
 from data_loader import load_data, filter_data, trend_filter
 from components import kpi_card, chart_card, section, fmt_compact, loc
+from map_helper import build_geomap_layout
 
 
 # ══════════════════════════════════════════════════════════════════════════════════
@@ -163,6 +164,8 @@ def render_pyb(year, level, prov, kab):
         xaxis=dict(range=[int(t['thn'].min()) - 0.4, int(t['thn'].max()) + 0.4]) if not t.empty else {},
     )
 
+    map_section, top_bottom_section, rank_section = build_geomap_layout(df, year, 'PYB')
+
     return html.Div([
         html.Div(className="page-header", children=[
             html.Span(f"{loc(level,prov,kab)}  ·  {year}", className="page-badge"),
@@ -179,6 +182,9 @@ def render_pyb(year, level, prov, kab):
                              fmt_compact(jmv[-1]) if jmv else "—",
                              PALETTE["gold"], f"{PALETTE['gold']}14"), md=4),
         ], className="g-3 mb-2"),
+
+        map_section,
+        top_bottom_section,
 
         section("Profil Demografis"),
         dbc.Row([
@@ -204,4 +210,6 @@ def render_pyb(year, level, prov, kab):
             dbc.Col(chart_card("Tren PYB 2018–2025",
                                f"Perkembangan historis — {loc(level,prov,kab)}", trend_fig), md=12),
         ], className="g-3"),
+        
+        rank_section
     ])
