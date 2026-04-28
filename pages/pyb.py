@@ -114,6 +114,22 @@ def render_pyb(year, level, prov, kab):
     apply_chart(sta_fig, height=360, no_legend=True)
     sta_fig.update_layout(margin=dict(l=60, r=60, t=20, b=20))
 
+    # ── Formal vs Informal ───────────────────────────────────────────────────
+    v_formal = int(data['sta_3'].sum() + data['sta_4'].sum()) if ('sta_3' in data.columns and 'sta_4' in data.columns) else 0
+    v_informal = max(0, total - v_formal)
+    formal_fig = go.Figure(go.Pie(
+        labels=['Formal', 'Informal'], values=[v_formal, v_informal], hole=0.6,
+        marker=dict(colors=[PALETTE["teal"], PALETTE["gold"]]),
+        textinfo='none', textposition='outside',
+        text=[f"Formal<br>{fmt_compact(v_formal)}", f"Informal<br>{fmt_compact(v_informal)}"],
+        texttemplate="%{text}",
+        hovertemplate="<b>%{label}</b><br>%{value:,.0f} jiwa<br>%{percent}<extra></extra>",
+    ))
+    formal_fig.add_annotation(text="<b>Pekerja</b>", x=0.5, y=0.5,
+                           font=dict(size=14, color=PALETTE["text"]), showarrow=False)
+    apply_chart(formal_fig, height=360, no_legend=True)
+    formal_fig.update_layout(margin=dict(l=60, r=60, t=20, b=20))
+
     # ── Jabatan horizontal ────────────────────────────────────────────────────
     jab_map = {
         'jab_1':'Manajer','jab_2':'Profesional','jab_3':'Teknisi',
@@ -195,8 +211,11 @@ def render_pyb(year, level, prov, kab):
 
         section("Distribusi Sektor & Status"),
         dbc.Row([
-            dbc.Col(chart_card("Lapangan Usaha (Treemap)", "Proporsi berdasarkan sektor pekerjaan", sektor_tree), md=8),
-            dbc.Col(chart_card("Status Pekerjaan", "", sta_fig), md=4),
+            dbc.Col(chart_card("Lapangan Usaha (Treemap)", "Proporsi berdasarkan sektor pekerjaan", sektor_tree), md=12),
+        ], className="g-3 mb-2"),
+        dbc.Row([
+            dbc.Col(chart_card("Status Pekerjaan Utama", "Berdasarkan 7 klasifikasi BPS", sta_fig), md=6),
+            dbc.Col(chart_card("Pekerja Formal vs Informal", "Formal: Buruh Tetap + Karyawan", formal_fig), md=6),
         ], className="g-3 mb-2"),
 
         section("Jabatan & Jam Kerja"),

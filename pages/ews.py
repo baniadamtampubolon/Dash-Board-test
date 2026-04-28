@@ -134,21 +134,32 @@ def _get_top10(all_data, sort_asc):
 # ══════════════════════════════════════════════════════════════════════════════════
 #  Chart Builders
 # ══════════════════════════════════════════════════════════════════════════════════
-def _make_bar(cfg, top10):
+def _make_bar(cfg, top10, show_pct=False):
     """Horizontal bar chart for top 10."""
     if top10.empty:
         return go.Figure()
 
-    if cfg['is_ratio']:
-        text_vals = [f"{v:.2f}%" for v in top10['value']]
+    # If user wants percentage AND the indicator is NOT already a ratio,
+    # convert absolute values to share-of-total percentages.
+    plot_data = top10.copy()
+    if show_pct and not cfg['is_ratio']:
+        total = plot_data['value'].sum()
+        if total > 0:
+            plot_data['value'] = (plot_data['value'] / total * 100).round(2)
+        text_vals = [f"{v:.2f}%" for v in plot_data['value']]
+        hover = "<b>%{y}</b><br>" + f"{cfg['name']}: " + "%{x:.2f}%<extra></extra>"
+    elif cfg['is_ratio']:
+        text_vals = [f"{v:.2f}%" for v in plot_data['value']]
         hover = "<b>%{y}</b><br>" + f"{cfg['name']}: " + "%{x:.2f}%<extra></extra>"
     else:
-        text_vals = [fmt_compact(v) for v in top10['value']]
+        text_vals = [fmt_compact(v) for v in plot_data['value']]
         hover = "<b>%{y}</b><br>" + f"{cfg['name']}: " + "%{x:,.0f}<extra></extra>"
 
-    fig = px.bar(top10, x='value', y='region', orientation='h',
-                 text=text_vals, color_discrete_sequence=[cfg['color']])
-    fig.update_traces(textposition='outside', textfont_size=10,
+    fig = px.bar(plot_data, x='value', y='region', orientation='h',
+                 text=text_vals, color='value', 
+                 color_continuous_scale=[[0, "#F8FAFC"], [1, cfg['color']]])
+    fig.update_coloraxes(showscale=False)
+    fig.update_traces(textposition='outside', textfont_size=11,
                       hovertemplate=hover, marker_line_width=0)
     apply_chart(fig, height=320)
     fig.update_layout(xaxis_title="", yaxis_title="",
@@ -236,13 +247,12 @@ def _make_treemap(cfg, all_data):
 def _card_header(i, cfg):
     """Reusable card header for all modes."""
     return html.Div(style={"display": "flex", "alignItems": "center", "gap": "8px",
-                            "padding": "14px 18px 0"}, children=[
-        html.Span(cfg['icon'], style={"fontSize": "18px"}),
+                            "padding": "16px 20px 0"}, children=[
         html.Div([
             html.Div(f"{i+1}. {cfg['name']}", style={
-                "fontSize": "13px", "fontWeight": "700", "color": PALETTE["text"]}),
+                "fontSize": "15px", "fontWeight": "800", "color": PALETTE["text"]}),
             html.Div(cfg['desc'], style={
-                "fontSize": "11px", "color": PALETTE["muted"]}),
+                "fontSize": "12px", "color": PALETTE["muted"], "marginTop": "2px"}),
         ]),
     ])
 
@@ -267,7 +277,7 @@ def render_ews(year, level, prov, kab):
 
         # Toggle switch - 3 modes
         html.Div(style={
-            "display": "flex", "alignItems": "center", "gap": "16px",
+            "display": "flex", "alignItems": "center", "gap": "16px", "flexWrap": "wrap",
             "marginBottom": "20px",
         }, children=[
             html.Span("Mode Visualisasi", style={
@@ -275,11 +285,37 @@ def render_ews(year, level, prov, kab):
             dbc.RadioItems(
                 id="ews-mode",
                 options=[
-                    {"label": "📊 Bar Chart", "value": "bar"},
-                    {"label": "🗺️ Peta Sebaran", "value": "map"},
-                    {"label": "🟩 Treemap", "value": "treemap"},
+                    {"label": "Bar Chart", "value": "bar"},
+                    {"label": "Peta Sebaran", "value": "map"},
+                    {"label": "Treemap", "value": "treemap"},
                 ],
                 value="bar",
+                inline=True,
+                className="ews-toggle",
+            ),
+            html.Span("|", style={"color": PALETTE["border"], "fontSize": "18px", "margin": "0 4px"}),
+            html.Span("Urutan", style={
+                "fontSize": "13px", "fontWeight": "600", "color": PALETTE["text"]}),
+            dbc.RadioItems(
+                id="ews-sort",
+                options=[
+                    {"label": "10 Tertinggi", "value": "desc"},
+                    {"label": "10 Terendah", "value": "asc"},
+                ],
+                value="desc",
+                inline=True,
+                className="ews-toggle",
+            ),
+            html.Span("|", style={"color": PALETTE["border"], "fontSize": "18px", "margin": "0 4px"}),
+            html.Span("Satuan", style={
+                "fontSize": "13px", "fontWeight": "600", "color": PALETTE["text"]}),
+            dbc.RadioItems(
+                id="ews-unit",
+                options=[
+                    {"label": "Angka", "value": "abs"},
+                    {"label": "Persen", "value": "pct"},
+                ],
+                value="abs",
                 inline=True,
                 className="ews-toggle",
             ),
@@ -328,27 +364,32 @@ def register_ews_callbacks(app):
     @app.callback(
         Output("ews-content", "children"),
         Input("ews-mode", "value"),
+        Input("ews-sort", "value"),
+        Input("ews-unit", "value"),
         Input("dd-year", "value"),
         Input("radio-level", "value"),
         Input("dd-prov", "value"),
     )
-    def update_ews_content(mode, year, level, prov):
+    def update_ews_content(mode, sort_dir, unit_mode, year, level, prov):
         if not DATA_AVAILABLE:
             return html.Div("Data tidak tersedia.")
 
         ews_level = level if level in ('nasional', 'provinsi') else 'nasional'
         scope_label = prov if ews_level == 'provinsi' and prov else 'Indonesia'
         sub_label = 'Provinsi' if ews_level == 'nasional' else 'Kabupaten/Kota'
+        show_pct = (unit_mode == "pct")
 
         charts = []
         for i, cfg in enumerate(_EWS_INDICATORS):
             all_data = _get_all_regions(cfg, year, ews_level, prov)
-            sort_word = "Terendah" if cfg['sort_asc'] else "Tertinggi"
 
             # Build chart based on mode
             if mode == "bar":
-                top10 = _get_top10(all_data, cfg['sort_asc'])
-                fig = _make_bar(cfg, top10)
+                # Use user-selected sort direction for bar mode
+                use_asc = (sort_dir == "asc")
+                top10 = _get_top10(all_data, use_asc)
+                fig = _make_bar(cfg, top10, show_pct=show_pct)
+                sort_word = "Terendah" if use_asc else "Tertinggi"
                 sub_text = f"Top 10 {sub_label} {sort_word} — {scope_label} ({year})"
             elif mode == "map":
                 if ews_level != 'nasional':

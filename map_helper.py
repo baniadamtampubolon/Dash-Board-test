@@ -94,8 +94,9 @@ def build_geomap_layout(df, year, indicator_key):
     ]
     top_colors = [PALETTE["teal"], PALETTE["blue"], PALETTE["indigo"]]
     for i, (_, row) in enumerate(top3.iterrows()):
+        icon_with_rank = html.Div([top_icons[i], html.Span(f"#{i+1}", style={"marginLeft": "8px", "fontSize": "16px", "fontWeight": "800"})], style={"display": "flex", "alignItems": "center"})
         top_cards.append(
-            dbc.Col(kpi_card(top_icons[i], row['nm_prov'], fmt_val(row['value']),
+            dbc.Col(kpi_card(icon_with_rank, row['nm_prov'], fmt_val(row['value']),
                              top_colors[i], f"{top_colors[i]}14"), md=2)
         )
 
@@ -106,8 +107,9 @@ def build_geomap_layout(df, year, indicator_key):
         DashIconify(icon="ph:warning-fill", width=24)
     ]
     for i, (_, row) in enumerate(bot3.iterrows()):
+        icon_with_rank = html.Div([bot_icons[i], html.Span(f"#{i+1}", style={"marginLeft": "8px", "fontSize": "16px", "fontWeight": "800"})], style={"display": "flex", "alignItems": "center"})
         bot_cards.append(
-            dbc.Col(kpi_card(bot_icons[i], row['nm_prov'], fmt_val(row['value']),
+            dbc.Col(kpi_card(icon_with_rank, row['nm_prov'], fmt_val(row['value']),
                              PALETTE["gold"], f"{PALETTE['gold']}14"), md=2)
         )
 
