@@ -81,7 +81,7 @@ _EWS_INDICATORS = [
 # ══════════════════════════════════════════════════════════════════════════════════
 #  Data Helpers
 # ══════════════════════════════════════════════════════════════════════════════════
-def _get_all_regions(cfg, year, level, prov):
+def _get_all_regions(cfg, year, level, prov, show_pct=False):
     """Get ALL region data for a given indicator (not just top 10)."""
     df = load_data(cfg['file'])
 
@@ -110,6 +110,11 @@ def _get_all_regions(cfg, year, level, prov):
                         pd.to_numeric(sub[total_col], errors='coerce') * 100)
     else:
         sub['value'] = pd.to_numeric(sub[cfg['col']], errors='coerce')
+        if show_pct and not cfg['is_ratio']:
+            # Coba cari kolom total yang relevan (PT, PYB, atau PUK)
+            tot_col = next((c for c in ['PT', 'PYB', 'PUK'] if c in sub.columns), None)
+            if tot_col:
+                sub['value'] = (sub['value'] / pd.to_numeric(sub[tot_col], errors='coerce')) * 100
 
     sub['value'] = sub['value'].fillna(0).round(2)
 
@@ -139,16 +144,10 @@ def _make_bar(cfg, top10, show_pct=False):
     if top10.empty:
         return go.Figure()
 
-    # If user wants percentage AND the indicator is NOT already a ratio,
-    # convert absolute values to share-of-total percentages.
     plot_data = top10.copy()
-    if show_pct and not cfg['is_ratio']:
-        total = plot_data['value'].sum()
-        if total > 0:
-            plot_data['value'] = (plot_data['value'] / total * 100).round(2)
-        text_vals = [f"{v:.2f}%" for v in plot_data['value']]
-        hover = "<b>%{y}</b><br>" + f"{cfg['name']}: " + "%{x:.2f}%<extra></extra>"
-    elif cfg['is_ratio']:
+    is_pct = show_pct or cfg['is_ratio']
+    
+    if is_pct:
         text_vals = [f"{v:.2f}%" for v in plot_data['value']]
         hover = "<b>%{y}</b><br>" + f"{cfg['name']}: " + "%{x:.2f}%<extra></extra>"
     else:
@@ -381,7 +380,8 @@ def register_ews_callbacks(app):
 
         charts = []
         for i, cfg in enumerate(_EWS_INDICATORS):
-            all_data = _get_all_regions(cfg, year, ews_level, prov)
+            apply_pct = show_pct if mode == "bar" else False
+            all_data = _get_all_regions(cfg, year, ews_level, prov, show_pct=apply_pct)
 
             # Build chart based on mode
             if mode == "bar":
