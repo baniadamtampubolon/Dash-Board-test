@@ -80,6 +80,15 @@ _PROV_NAME_TO_GEO = {
     'D I Yogyakarta': 'Daerah Istimewa Yogyakarta',
 }
 
+_PROV_NAME_TO_GEO_KABKOT = {
+    'DKI Jakarta': 'Jakarta Raya',
+    'D I Yogyakarta': 'Yogyakarta',
+    'Papua Barat Daya': 'Papua Barat',
+    'Papua Pegunungan': 'Papua',
+    'Papua Selatan': 'Papua',
+    'Papua Tengah': 'Papua'
+}
+
 def load_geojson():
     global _geojson_cache
     if _geojson_cache is not None:
@@ -87,6 +96,17 @@ def load_geojson():
     with open('Database/indonesia-provinces.geojson', 'r') as f:
         _geojson_cache = json.load(f)
     return _geojson_cache
+
+
+_geojson_kabkot_cache = None
+
+def load_geojson_kabkot():
+    global _geojson_kabkot_cache
+    if _geojson_kabkot_cache is not None:
+        return _geojson_kabkot_cache
+    with open('Database/indonesia-kabkot-simplified.geojson', 'r') as f:
+        _geojson_kabkot_cache = json.load(f)
+    return _geojson_kabkot_cache
 
 
 def filter_data(df, year, level, prov=None, kabkot=None):

@@ -7,7 +7,7 @@ import plotly.graph_objects as go
 import pandas as pd
 
 from design import PALETTE, apply_chart
-from data_loader import load_data, load_geojson, _PROV_NAME_TO_GEO, DATA_AVAILABLE
+from data_loader import load_data, load_geojson, load_geojson_kabkot, _PROV_NAME_TO_GEO, _PROV_NAME_TO_GEO_KABKOT, DATA_AVAILABLE
 from components import section, fmt_compact
 
 
@@ -177,12 +177,26 @@ def _make_bar(cfg, top10, show_pct=False):
     return fig
 
 
-def _make_map(cfg, all_data, year):
-    """Choropleth map for all provinces."""
+def _make_map(cfg, all_data, year, level, prov):
+    """Choropleth map for all provinces or regencies."""
     if all_data.empty:
         return go.Figure()
 
-    geojson = load_geojson()
+    if level == 'nasional':
+        geojson = load_geojson()
+        feature_key = "properties.PROVINSI"
+    else:
+        full_geojson = load_geojson_kabkot()
+        geo_prov = _PROV_NAME_TO_GEO_KABKOT.get(prov, prov)
+        filtered_features = [
+            f for f in full_geojson['features']
+            if f['properties'].get('NAME_1', '') == geo_prov
+        ]
+        geojson = {
+            "type": "FeatureCollection",
+            "features": filtered_features
+        }
+        feature_key = "properties.NAME_2"
     color_scale = [[0, "#E3EDF9"], [0.35, "#90CAF9"], [0.65, cfg['color']], [1, PALETTE["navy"]]]
 
     if cfg['is_ratio']:
@@ -193,7 +207,7 @@ def _make_map(cfg, all_data, year):
     fig = go.Figure(go.Choroplethmap(
         geojson=geojson,
         locations=all_data['geo_name'],
-        featureidkey="properties.PROVINSI",
+        featureidkey=feature_key,
         z=all_data['value'],
         colorscale=color_scale,
         marker=dict(line=dict(width=0.6, color="#FFFFFF")),
@@ -398,17 +412,7 @@ def register_ews_callbacks(app):
         bar_fig.update_layout(height=bar_height)
         
         # 2. Map
-        if ews_level != 'nasional':
-            map_fig = go.Figure()
-            map_fig.update_layout(
-                height=300, margin=dict(l=0, r=0, t=40, b=0),
-                paper_bgcolor="rgba(0,0,0,0)",
-                annotations=[dict(text="Peta hanya tersedia di tingkat Nasional",
-                                 x=0.5, y=0.5, xref="paper", yref="paper",
-                                 showarrow=False, font=dict(size=13, color=PALETTE["muted"]))]
-            )
-        else:
-            map_fig = _make_map(cfg, all_data, year)
+        map_fig = _make_map(cfg, all_data, year, ews_level, prov)
 
         # 3. Treemap
         tree_fig = _make_treemap(cfg, all_data)
