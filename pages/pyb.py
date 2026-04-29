@@ -17,7 +17,7 @@ from map_helper import build_geomap_layout
 #  PAGE: PYB
 # ══════════════════════════════════════════════════════════════════════════════════
 def render_pyb(year, level, prov, kab):
-    df = load_data("Database/PYB-2018-2025-ver3.xlsx")
+    df = load_data("Database/PYB-2018-2025-ver4.xlsx")
     data = filter_data(df, year, level, prov, kab)
     total = int(data['total'].sum())
 

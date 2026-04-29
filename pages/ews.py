@@ -29,7 +29,7 @@ _EWS_INDICATORS = [
     },
     {
         'id': 'pekerja_keluarga', 'name': 'Pekerja Keluarga/Tak Dibayar', 'icon': '🏠',
-        'file': 'Database/PYB-2018-2025-ver3.xlsx', 'col': 'sta_7',
+        'file': 'Database/PYB-2018-2025-ver4.xlsx', 'col': 'sta_7',
         'unit': 'jiwa', 'is_ratio': False, 'compute': None,
         'color': PALETTE['gold'], 'desc': 'PYB — Status: Pekerja Keluarga/Tak Dibayar', 'sort_asc': False,
     },
@@ -75,6 +75,12 @@ _EWS_INDICATORS = [
         'unit': '%', 'is_ratio': True, 'compute': None,
         'color': PALETTE['teal'], 'desc': 'EPR — Rasio penduduk bekerja terhadap PUK', 'sort_asc': True,
     },
+    {
+        'id': 'pekerja_informal', 'name': 'Pekerja Informal', 'icon': '🛠️',
+        'file': 'Database/PYB-2018-2025-ver3.xlsx', 'col': None,
+        'unit': 'jiwa', 'is_ratio': False, 'compute': 'informal',
+        'color': PALETTE['gold'], 'desc': 'PYB — Pekerja di sektor informal', 'sort_asc': False,
+    },
 ]
 
 
@@ -100,6 +106,10 @@ def _get_all_regions(cfg, year, level, prov, show_pct=False):
     compute = cfg['compute']
     if compute == 'gender_gap':
         sub['value'] = sub['jk_lk'].astype(float) - sub['jk_pr'].astype(float)
+    elif compute == 'informal':
+        total_col = 'PYB' if 'PYB' in sub.columns else 'total'
+        formal = sub['sta_3'].astype(float).fillna(0) + sub['sta_4'].astype(float).fillna(0)
+        sub['value'] = sub[total_col].astype(float).fillna(0) - formal
     elif compute == 'prop_sd':
         total_col = 'PUK' if 'PUK' in sub.columns else 'total'
         sub['value'] = (pd.to_numeric(sub['pd_sd'], errors='coerce') /
@@ -110,11 +120,12 @@ def _get_all_regions(cfg, year, level, prov, show_pct=False):
                         pd.to_numeric(sub[total_col], errors='coerce') * 100)
     else:
         sub['value'] = pd.to_numeric(sub[cfg['col']], errors='coerce')
-        if show_pct and not cfg['is_ratio']:
-            # Coba cari kolom total yang relevan (PT, PYB, atau PUK)
-            tot_col = next((c for c in ['PT', 'PYB', 'PUK'] if c in sub.columns), None)
-            if tot_col:
-                sub['value'] = (sub['value'] / pd.to_numeric(sub[tot_col], errors='coerce')) * 100
+
+    if show_pct and not cfg['is_ratio']:
+        # Coba cari kolom total yang relevan (PT, PYB, atau PUK)
+        tot_col = next((c for c in ['PT', 'PYB', 'PUK'] if c in sub.columns), None)
+        if tot_col:
+            sub['value'] = (sub['value'] / pd.to_numeric(sub[tot_col], errors='coerce')) * 100
 
     sub['value'] = sub['value'].fillna(0).round(2)
 
@@ -156,7 +167,7 @@ def _make_bar(cfg, top10, show_pct=False):
 
     fig = px.bar(plot_data, x='value', y='region', orientation='h',
                  text=text_vals, color='value', 
-                 color_continuous_scale=[[0, "#F8FAFC"], [1, cfg['color']]])
+                 color_continuous_scale=["#DBEAFE", cfg['color'], PALETTE["navy"]])
     fig.update_coloraxes(showscale=False)
     fig.update_traces(textposition='outside', textfont_size=11,
                       hovertemplate=hover, marker_line_width=0)
@@ -243,14 +254,14 @@ def _make_treemap(cfg, all_data):
     return fig
 
 
-def _card_header(i, cfg):
-    """Reusable card header for all modes."""
+def _card_header(title, desc):
+    """Reusable card header for EWS."""
     return html.Div(style={"display": "flex", "alignItems": "center", "gap": "8px",
                             "padding": "16px 20px 0"}, children=[
         html.Div([
-            html.Div(f"{i+1}. {cfg['name']}", style={
+            html.Div(title, style={
                 "fontSize": "15px", "fontWeight": "800", "color": PALETTE["text"]}),
-            html.Div(cfg['desc'], style={
+            html.Div(desc, style={
                 "fontSize": "12px", "color": PALETTE["muted"], "marginTop": "2px"}),
         ]),
     ])
@@ -269,29 +280,25 @@ def render_ews(year, level, prov, kab):
             html.Span(f"{scope_label}  ·  {year}", className="page-badge"),
             html.H1("Early Warning System", className="page-title"),
             html.P(
-                f"Top 10 {sub_label} per kategori indikator ketenagakerjaan",
+                f"Analisis komprehensif indikator ketenagakerjaan per {sub_label.lower()}",
                 className="page-subtitle",
             ),
         ]),
 
-        # Toggle switch - 3 modes
+        # Dropdown and toggles
         html.Div(style={
             "display": "flex", "alignItems": "center", "gap": "16px", "flexWrap": "wrap",
             "marginBottom": "20px",
         }, children=[
-            html.Span("Mode Visualisasi", style={
+            html.Span("Pilih Indikator:", style={
                 "fontSize": "13px", "fontWeight": "600", "color": PALETTE["text"]}),
-            dbc.RadioItems(
-                id="ews-mode",
-                options=[
-                    {"label": "Bar Chart", "value": "bar"},
-                    {"label": "Peta Sebaran", "value": "map"},
-                    {"label": "Treemap", "value": "treemap"},
-                ],
-                value="bar",
-                inline=True,
-                className="ews-toggle",
-            ),
+            html.Div(dcc.Dropdown(
+                id="ews-indicator",
+                options=[{"label": cfg['name'], "value": cfg['id']} for cfg in _EWS_INDICATORS],
+                value=_EWS_INDICATORS[0]['id'],
+                clearable=False,
+                searchable=False,
+            ), style={"width": "300px", "marginRight": "8px"}),
             html.Span("|", style={"color": PALETTE["border"], "fontSize": "18px", "margin": "0 4px"}),
             html.Span("Urutan", style={
                 "fontSize": "13px", "fontWeight": "600", "color": PALETTE["text"]}),
@@ -362,14 +369,14 @@ def render_ews(year, level, prov, kab):
 def register_ews_callbacks(app):
     @app.callback(
         Output("ews-content", "children"),
-        Input("ews-mode", "value"),
+        Input("ews-indicator", "value"),
         Input("ews-sort", "value"),
         Input("ews-unit", "value"),
         Input("dd-year", "value"),
         Input("radio-level", "value"),
         Input("dd-prov", "value"),
     )
-    def update_ews_content(mode, sort_dir, unit_mode, year, level, prov):
+    def update_ews_content(indicator_id, sort_dir, unit_mode, year, level, prov):
         if not DATA_AVAILABLE:
             return html.Div("Data tidak tersedia.")
 
@@ -378,55 +385,57 @@ def register_ews_callbacks(app):
         sub_label = 'Provinsi' if ews_level == 'nasional' else 'Kabupaten/Kota'
         show_pct = (unit_mode == "pct")
 
-        charts = []
-        for i, cfg in enumerate(_EWS_INDICATORS):
-            apply_pct = show_pct if mode == "bar" else False
-            all_data = _get_all_regions(cfg, year, ews_level, prov, show_pct=apply_pct)
+        cfg = next((c for c in _EWS_INDICATORS if c['id'] == indicator_id), _EWS_INDICATORS[0])
 
-            # Build chart based on mode
-            if mode == "bar":
-                # Use user-selected sort direction for bar mode
-                use_asc = (sort_dir == "asc")
-                top10 = _get_top10(all_data, use_asc)
-                fig = _make_bar(cfg, top10, show_pct=show_pct)
-                sort_word = "Terendah" if use_asc else "Tertinggi"
-                sub_text = f"Top 10 {sub_label} {sort_word} — {scope_label} ({year})"
-            elif mode == "map":
-                if ews_level != 'nasional':
-                    # Map only works at national level (provinces)
-                    fig = go.Figure()
-                    fig.update_layout(
-                        height=300, margin=dict(l=0, r=0, t=40, b=0),
-                        paper_bgcolor="rgba(0,0,0,0)",
-                        annotations=[dict(text="Peta hanya tersedia di tingkat Nasional",
-                                         x=0.5, y=0.5, xref="paper", yref="paper",
-                                         showarrow=False, font=dict(size=13, color=PALETTE["muted"]))]
-                    )
-                else:
-                    fig = _make_map(cfg, all_data, year)
-                sub_text = f"Sebaran {sub_label} — {scope_label} ({year})"
-            else:  # treemap
-                fig = _make_treemap(cfg, all_data)
-                sub_text = f"Proporsi {sub_label} — {scope_label} ({year})"
+        # Fetch and sort data
+        all_data = _get_all_regions(cfg, year, ews_level, prov, show_pct=show_pct)
+        use_asc = (sort_dir == "asc")
+        all_data = all_data.sort_values('value', ascending=use_asc)
 
-            card = html.Div(className="chart-card", style={"marginBottom": "4px"}, children=[
-                _card_header(i, cfg),
-                html.Div(sub_text, style={
-                    "fontSize": "11px", "color": PALETTE["muted"],
-                    "padding": "4px 18px 0", "fontWeight": "500"}),
-                dcc.Graph(figure=fig, config={"displayModeBar": False, "scrollZoom": mode == "map"},
-                          style={"borderRadius": "0 0 16px 16px"}),
-            ])
-            charts.append(card)
-
-        # Arrange in 2 columns × 5 rows
-        rows = []
-        for r in range(5):
-            rows.append(
-                dbc.Row([
-                    dbc.Col(charts[r * 2], md=6),
-                    dbc.Col(charts[r * 2 + 1], md=6),
-                ], className="g-3 mb-3")
+        # 1. Bar Chart (Full Height)
+        bar_height = max(320, len(all_data) * 28 + 60)
+        bar_fig = _make_bar(cfg, all_data, show_pct=show_pct)
+        bar_fig.update_layout(height=bar_height)
+        
+        # 2. Map
+        if ews_level != 'nasional':
+            map_fig = go.Figure()
+            map_fig.update_layout(
+                height=300, margin=dict(l=0, r=0, t=40, b=0),
+                paper_bgcolor="rgba(0,0,0,0)",
+                annotations=[dict(text="Peta hanya tersedia di tingkat Nasional",
+                                 x=0.5, y=0.5, xref="paper", yref="paper",
+                                 showarrow=False, font=dict(size=13, color=PALETTE["muted"]))]
             )
+        else:
+            map_fig = _make_map(cfg, all_data, year)
 
-        return html.Div(rows)
+        # 3. Treemap
+        tree_fig = _make_treemap(cfg, all_data)
+        
+        sort_word = "Terendah" if use_asc else "Tertinggi"
+        
+        return html.Div([
+            # Row 1: Map & Treemap
+            dbc.Row([
+                dbc.Col(html.Div(className="chart-card", children=[
+                    _card_header("Peta Sebaran Wilayah", f"Distribusi indikator di {scope_label} ({year})"),
+                    dcc.Graph(figure=map_fig, config={"displayModeBar": False, "scrollZoom": True},
+                              style={"borderRadius": "0 0 16px 16px"}),
+                ]), md=7),
+                dbc.Col(html.Div(className="chart-card", children=[
+                    _card_header("Proporsi Visual (Treemap)", f"Komparasi {sub_label} di {scope_label} ({year})"),
+                    dcc.Graph(figure=tree_fig, config={"displayModeBar": False},
+                              style={"borderRadius": "0 0 16px 16px"}),
+                ]), md=5),
+            ], className="g-3 mb-3"),
+            
+            # Row 2: Full Bar Chart
+            dbc.Row([
+                dbc.Col(html.Div(className="chart-card", children=[
+                    _card_header("Peringkat Lengkap Wilayah", f"Urutan {sub_label} {sort_word} — {scope_label} ({year})"),
+                    dcc.Graph(figure=bar_fig, config={"displayModeBar": False},
+                              style={"borderRadius": "0 0 16px 16px"}),
+                ]), md=12),
+            ], className="g-3 mb-3"),
+        ])

@@ -1,5 +1,5 @@
 # Project Dash Labor Board - Session Development Log
-**Tanggal Terakhir Update:** 18 April 2026
+**Tanggal Terakhir Update:** 28 April 2026
 **Status:** Stabil & Fitur Lengkap
 
 ---
@@ -150,6 +150,23 @@ Tiga indikator rasio utama dengan dataset versi terbaru (`ver2.xlsx`):
 - **Highlight Struktur Ketenagakerjaan:** Menerapkan prinsip *Gestalt* dan psikologi warna pada grafik Alur Partisipasi (*Icicle Chart*). Angkatan Kerja (Bekerja & Pengangguran) dikelompokkan secara visual dalam kontainer biru, sementara Bukan Angkatan Kerja (Sekolah, MRT, Lainnya) dikelompokkan dalam kontainer abu-abu netral.
 - **Kompaktifikasi Ban Chart:** Menyatukan 4 metrik absolut utama dan 3 metrik rasio (TPAK, TPT, EPR) ke dalam satu baris horizontal memanjang yang elegan (`kpi-row-compact`).
 - **Re-ordering Layout:** Menukar tata letak agar tabel matriks "Rekapitulasi Data Historis" tampil lebih dulu sebelum grafik "Dinamika & Tren".
+
+---
+
+## Sesi 28 April 2026 — Penyempurnaan EWS & Analisis Formal/Informal
+
+### 1. Finalisasi Estetika EWS & Map Helper
+- **Pembersihan EWS:** Menghapus emoji konvensional dari judul indikator EWS untuk kesan eksekutif. Mengaplikasikan ukuran *font* judul 15px dan warna gradasi dinamis (dari `#F8FAFC` ke *solid*) pada grafik mendatar (*Bar Chart*).
+- **Ranking Visual:** Menambahkan penanda peringkat dinamis (`#1`, `#2`, `#3`) berdampingan langsung dengan ikon Medali/Piala (menggunakan *Inline-Flexbox* yang elastis) di kartu *Top & Bottom* Provinsi.
+
+### 2. Fitur Interaktif EWS (Urutan & Satuan)
+- **Toggle Urutan (Tertinggi vs Terendah):** Menambahkan kontrol interaktif untuk menukar arah pengurutan data *Top 10* pada mode *Bar Chart*, menimpa konfigurasi orientasi dasar indikator.
+- **Toggle Satuan (Angka vs Persen):** Menambahkan konversi canggih yang merubah hitungan absolut menjadi rasio persentase riil. Algoritma ini mencari kolom total aktual (misal `PT` atau `PYB`) lalu membagi populasi metrik di suatu wilayah dengan total populasinya sendiri, menghasilkan *insight* prioritas wilayah baru yang berbasis keparahan rasio. Fitur ini cerdas mengabaikan metrik yang secara bawaan sudah berformat rasio.
+
+### 3. Analisis Formal vs Informal (PYB)
+- **Kalkulasi Lanjutan:** Mengonstruksi logika pembagian sektor riil menjadi Formal (menggabungkan Buruh Tetap + Karyawan/Pegawai) dan Informal (Berusaha sendiri, Bebas, dll).
+- **Visualisasi Dual-Donut:** Menyandingkan grafik *Donut* Status Pekerjaan BPS lawas (7 klasifikasi) dengan *Donut Chart* Formal vs Informal yang menggunakan kontras warna kementerian (Teal dan Gold).
+- **Ekspansi Treemap:** Merentangkan grafik balok bersarang (*Treemap*) untuk "Lapangan Usaha" menjadi seluas bentang layar penuh (`md=12`).
 
 ---
 

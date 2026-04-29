@@ -668,7 +668,7 @@ def render_main(year, level, prov, kab):
     df_puk = load_data("Database/PUK-2018-2025-ver2.xlsx")
     df_ak  = load_data("Database/AK-2018-2025-ver2.xlsx")
     df_pt  = load_data("Database/PT-2018-2025-ver2.xlsx")
-    df_pyb = load_data("Database/PYB-2018-2025-ver3.xlsx")
+    df_pyb = load_data("Database/PYB-2018-2025-ver4.xlsx")
 
     data_puk = filter_data(df_puk, year, level, prov, kab)
     data_ak  = filter_data(df_ak,  year, level, prov, kab)
@@ -815,7 +815,7 @@ def render_main(year, level, prov, kab):
 def render_puk(year, level, prov, kab):
     df_puk = load_data("Database/PUK-2018-2025-ver2.xlsx")
     df_pt  = load_data("Database/PT-2018-2025-ver2.xlsx")
-    df_pyb = load_data("Database/PYB-2018-2025-ver3.xlsx")
+    df_pyb = load_data("Database/PYB-2018-2025-ver4.xlsx")
 
     data = filter_data(df_puk, year, level, prov, kab)
     data_pt  = filter_data(df_pt,  year, level, prov, kab)
@@ -1110,7 +1110,7 @@ def render_pt(year, level, prov, kab):
 #  PAGE: PYB
 # ══════════════════════════════════════════════════════════════════════════════════
 def render_pyb(year, level, prov, kab):
-    df = load_data("Database/PYB-2018-2025-ver3.xlsx")
+    df = load_data("Database/PYB-2018-2025-ver4.xlsx")
     data = filter_data(df, year, level, prov, kab)
     total = int(data['total'].sum())
 
