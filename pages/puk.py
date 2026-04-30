@@ -131,7 +131,7 @@ def render_puk(year, level, prov, kab):
         margin=dict(l=48, r=48, t=48, b=40),
     )
 
-    map_section, top_bottom_section, rank_section = build_geomap_layout(df_puk, year, 'PUK')
+    map_section, top_bottom_section, rank_section = build_geomap_layout(df_puk, year, level, prov, 'PUK')
 
     return html.Div([
         html.Div(className="page-header", children=[

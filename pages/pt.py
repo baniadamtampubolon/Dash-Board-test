@@ -129,7 +129,7 @@ def render_pt(year, level, prov, kab):
         margin=dict(l=48, r=48, t=48, b=40),
     )
 
-    map_section, top_bottom_section, rank_section = build_geomap_layout(df, year, 'PT')
+    map_section, top_bottom_section, rank_section = build_geomap_layout(df, year, level, prov, 'PT')
 
     return html.Div([
         html.Div(className="page-header", children=[

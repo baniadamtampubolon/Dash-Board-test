@@ -180,7 +180,7 @@ def render_pyb(year, level, prov, kab):
         xaxis=dict(range=[int(t['thn'].min()) - 0.4, int(t['thn'].max()) + 0.4]) if not t.empty else {},
     )
 
-    map_section, top_bottom_section, rank_section = build_geomap_layout(df, year, 'PYB')
+    map_section, top_bottom_section, rank_section = build_geomap_layout(df, year, level, prov, 'PYB')
 
     return html.Div([
         html.Div(className="page-header", children=[

@@ -118,7 +118,7 @@ def _build_ratio_page(df, data, year, level, prov, kab, *,
     apply_chart(kd_fig, height=300, no_legend=True)
     kd_fig.update_layout(xaxis_title="", yaxis_title="", margin=dict(l=10, r=70, t=10, b=10))
 
-    map_section, top_bottom_section, rank_section = build_geomap_layout(df, year, label_short)
+    map_section, top_bottom_section, rank_section = build_geomap_layout(df, year, level, prov, label_short)
 
     # ── Assemble page ────────────────────────────────────────────────────────
     return html.Div([

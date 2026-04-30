@@ -7,7 +7,7 @@ import plotly.graph_objects as go
 
 from design import PALETTE, apply_chart
 from components import kpi_card, section, fmt_compact
-from data_loader import load_geojson, _PROV_NAME_TO_GEO
+from data_loader import load_geojson, load_geojson_kabkot, _PROV_NAME_TO_GEO, _PROV_NAME_TO_GEO_KABKOT, _KABKOT_NAME_TO_GEO, _PROV_BOUNDS
 
 _GEOMAP_INDICATORS = {
     'PUK':  {'label': 'Penduduk Usia Kerja',       'unit': 'jiwa',  'is_ratio': False, 'col': 'total'},
@@ -19,29 +19,52 @@ _GEOMAP_INDICATORS = {
     'EPR':  {'label': 'Employment to Pop. Ratio',  'unit': '%',     'is_ratio': True,  'col': 'EPR'},
 }
 
-def build_geomap_layout(df, year, indicator_key):
+def build_geomap_layout(df, year, level, prov, indicator_key):
     """
     Build the GeoMap layout consisting of Top/Bottom KPI cards, Choropleth map, and ranking bar chart.
-    `df` should be the raw (unfiltered) dataframe containing all provinces for the given metric.
-    `indicator_key` must be one of the keys in _GEOMAP_INDICATORS.
+    `df` should be the raw (unfiltered) dataframe containing all regions for the given metric.
     """
     cfg = _GEOMAP_INDICATORS[indicator_key]
-    geojson = load_geojson()
     col = cfg['col']
 
-    # Filter for province level and the selected year
-    prov_data = df[(df['thn'] == year) & (df['lvl_wil'].str.lower() == 'provinsi')].copy()
+    if level == 'nasional':
+        prov_data = df[(df['thn'] == year) & (df['lvl_wil'].str.lower() == 'provinsi')].copy()
+        geojson = load_geojson()
+        feature_key = "properties.PROVINSI"
+        name_col = 'nm_prov'
+        sub_label = "Provinsi"
+        scope_label = "Indonesia"
+    else:
+        prov_data = df[(df['thn'] == year) & 
+                       (df['lvl_wil'].str.lower().isin(['kabupaten', 'kota'])) & 
+                       (df['nm_prov'] == prov)].copy()
+        full_geojson = load_geojson_kabkot()
+        geo_prov = _PROV_NAME_TO_GEO_KABKOT.get(prov, prov)
+        filtered_features = [
+            f for f in full_geojson['features']
+            if f['properties'].get('NAME_1', '') == geo_prov
+        ]
+        geojson = {
+            "type": "FeatureCollection",
+            "features": filtered_features
+        }
+        feature_key = "properties.NAME_2"
+        name_col = 'nm_kabkot'
+        sub_label = "Kabupaten/Kota"
+        scope_label = prov
 
     if prov_data.empty or col not in prov_data.columns:
-        return html.Div(f"Data provinsi untuk {indicator_key} pada tahun {year} tidak tersedia.", className="p-4 text-center text-muted")
+        return html.Div(f"Data {sub_label.lower()} untuk {indicator_key} pada tahun {year} tidak tersedia.", className="p-4 text-center text-muted"), None, None
 
     if cfg['is_ratio']:
         prov_data['value'] = prov_data[col].apply(lambda x: round(float(x), 2))
     else:
         prov_data['value'] = pd.to_numeric(prov_data[col], errors='coerce').fillna(0).astype(int)
 
-    # Map province names to GeoJSON names
-    prov_data['geo_name'] = prov_data['nm_prov'].map(lambda x: _PROV_NAME_TO_GEO.get(x, x))
+    if level == 'nasional':
+        prov_data['geo_name'] = prov_data[name_col].map(lambda x: _PROV_NAME_TO_GEO.get(x, x))
+    else:
+        prov_data['geo_name'] = prov_data[name_col].map(lambda x: _KABKOT_NAME_TO_GEO.get(x, x))
 
     # ── Choropleth Map ────────────────────────────────────────────────────────
     if cfg['is_ratio']:
@@ -56,12 +79,12 @@ def build_geomap_layout(df, year, indicator_key):
     map_fig = go.Figure(go.Choroplethmap(
         geojson=geojson,
         locations=prov_data['geo_name'],
-        featureidkey="properties.PROVINSI",
+        featureidkey=feature_key,
         z=prov_data['value'],
         colorscale=color_scale,
         marker=dict(line=dict(width=0.8, color="#FFFFFF")),
         hovertemplate=hover_tmpl,
-        customdata=prov_data[['nm_prov']].values,
+        customdata=prov_data[[name_col]].values,
         colorbar=dict(
             title=dict(text=f"{indicator_key} ({cfg['unit']})", font=dict(size=12)),
             thickness=14, len=0.6, x=0.98,
@@ -72,8 +95,9 @@ def build_geomap_layout(df, year, indicator_key):
     map_fig.update_layout(
         map=dict(
             style="white-bg",
-            center=dict(lat=-2.5, lon=118),
-            zoom=3.4,
+            bounds=_PROV_BOUNDS.get(geo_prov) if level != 'nasional' else None,
+            center=dict(lat=-2.5, lon=118) if level == 'nasional' else None,
+            zoom=3.4 if level == 'nasional' else None,
         ),
         margin=dict(l=0, r=0, t=0, b=0),
         height=520,
@@ -96,7 +120,7 @@ def build_geomap_layout(df, year, indicator_key):
     for i, (_, row) in enumerate(top3.iterrows()):
         icon_with_rank = html.Div([top_icons[i], html.Span(f"#{i+1}", style={"marginLeft": "8px", "fontSize": "16px", "fontWeight": "800"})], style={"display": "flex", "alignItems": "center"})
         top_cards.append(
-            dbc.Col(kpi_card(icon_with_rank, row['nm_prov'], fmt_val(row['value']),
+            dbc.Col(kpi_card(icon_with_rank, row[name_col], fmt_val(row['value']),
                              top_colors[i], f"{top_colors[i]}14"), md=2)
         )
 
@@ -109,7 +133,7 @@ def build_geomap_layout(df, year, indicator_key):
     for i, (_, row) in enumerate(bot3.iterrows()):
         icon_with_rank = html.Div([bot_icons[i], html.Span(f"#{i+1}", style={"marginLeft": "8px", "fontSize": "16px", "fontWeight": "800"})], style={"display": "flex", "alignItems": "center"})
         bot_cards.append(
-            dbc.Col(kpi_card(icon_with_rank, row['nm_prov'], fmt_val(row['value']),
+            dbc.Col(kpi_card(icon_with_rank, row[name_col], fmt_val(row['value']),
                              PALETTE["gold"], f"{PALETTE['gold']}14"), md=2)
         )
 
@@ -117,7 +141,7 @@ def build_geomap_layout(df, year, indicator_key):
     rank_df = prov_data.sort_values('value', ascending=True)
 
     bar_fig = px.bar(
-        rank_df, x='value', y='nm_prov', orientation='h',
+        rank_df, x='value', y=name_col, orientation='h',
         color='value', color_continuous_scale=[PALETTE["sky"], PALETTE["blue"], PALETTE["navy"]],
         text=[fmt_val(v) for v in rank_df['value']],
     )
@@ -136,15 +160,15 @@ def build_geomap_layout(df, year, indicator_key):
     map_section = html.Div([
         section("Peta Choropleth"),
         html.Div(className="chart-card", style={"marginBottom": "20px"}, children=[
-            html.Div(f"Peta {cfg['label']} per Provinsi", className="chart-card-title"),
-            html.Div(f"Tahun {year} — Semua provinsi di Indonesia", className="chart-card-sub"),
-            dcc.Graph(figure=map_fig, config={"displayModeBar": False, "scrollZoom": True},
+            html.Div(f"Peta {cfg['label']} per {sub_label}", className="chart-card-title"),
+            html.Div(f"Tahun {year} — Sebaran di {scope_label}", className="chart-card-sub"),
+            dcc.Graph(figure=map_fig, config={"displayModeBar": "hover", "displaylogo": False, "modeBarButtonsToRemove": ["lasso2d", "select2d"], "scrollZoom": True},
                       style={"borderRadius": "0 0 16px 16px"}),
         ])
     ], style={"marginTop": "32px"})
 
     top_bottom_section = html.Div([
-        section("Top & Bottom Provinsi"),
+        section(f"Top & Bottom {sub_label}"),
         dbc.Row([
             dbc.Col(html.Div([DashIconify(icon="lucide:trending-up", width=16, style={"marginRight": "6px", "marginBottom": "2px"}), "Tertinggi"], style={
                 "fontSize": "12px", "fontWeight": "700", "color": PALETTE["teal"],
@@ -157,10 +181,10 @@ def build_geomap_layout(df, year, indicator_key):
     ])
 
     rank_section = html.Div([
-        section("Ranking Seluruh Provinsi"),
+        section(f"Ranking Seluruh {sub_label}"),
         html.Div(className="chart-card", children=[
             html.Div(f"Ranking {cfg['label']} — {year}", className="chart-card-title"),
-            html.Div("38 provinsi diurutkan dari terendah ke tertinggi", className="chart-card-sub"),
+            html.Div(f"Urutan daerah di {scope_label} dari terendah ke tertinggi", className="chart-card-sub"),
             dcc.Graph(figure=bar_fig, config={"displayModeBar": False},
                       style={"borderRadius": "0 0 16px 16px"}),
         ]),

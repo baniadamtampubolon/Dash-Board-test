@@ -7,7 +7,7 @@ import plotly.graph_objects as go
 import pandas as pd
 
 from design import PALETTE, apply_chart
-from data_loader import load_data, load_geojson, load_geojson_kabkot, _PROV_NAME_TO_GEO, _PROV_NAME_TO_GEO_KABKOT, DATA_AVAILABLE
+from data_loader import load_data, load_geojson, load_geojson_kabkot, _PROV_NAME_TO_GEO, _PROV_NAME_TO_GEO_KABKOT, _KABKOT_NAME_TO_GEO, _PROV_BOUNDS, DATA_AVAILABLE
 from components import section, fmt_compact
 
 
@@ -204,9 +204,14 @@ def _make_map(cfg, all_data, year, level, prov):
     else:
         hover = "<b>%{customdata[0]}</b><br>" + f"{cfg['name']}: " + "%{z:,.0f}<extra></extra>"
 
+    if level == 'nasional':
+        all_data['geo_name_plot'] = all_data['geo_name'].map(lambda x: _PROV_NAME_TO_GEO.get(x, x))
+    else:
+        all_data['geo_name_plot'] = all_data['geo_name'].map(lambda x: _KABKOT_NAME_TO_GEO.get(x, x))
+
     fig = go.Figure(go.Choroplethmap(
         geojson=geojson,
-        locations=all_data['geo_name'],
+        locations=all_data['geo_name_plot'],
         featureidkey=feature_key,
         z=all_data['value'],
         colorscale=color_scale,
@@ -219,7 +224,12 @@ def _make_map(cfg, all_data, year, level, prov):
         ),
     ))
     fig.update_layout(
-        map=dict(style="white-bg", center=dict(lat=-2.5, lon=118), zoom=3.2),
+        map=dict(
+            style="white-bg", 
+            bounds=_PROV_BOUNDS.get(geo_prov) if level != 'nasional' else None,
+            center=dict(lat=-2.5, lon=118) if level == 'nasional' else None, 
+            zoom=3.2 if level == 'nasional' else None
+        ),
         margin=dict(l=0, r=0, t=0, b=0), height=300,
         paper_bgcolor="rgba(0,0,0,0)",
         font=dict(family="Plus Jakarta Sans, sans-serif"),
@@ -424,7 +434,7 @@ def register_ews_callbacks(app):
             dbc.Row([
                 dbc.Col(html.Div(className="chart-card", children=[
                     _card_header("Peta Sebaran Wilayah", f"Distribusi indikator di {scope_label} ({year})"),
-                    dcc.Graph(figure=map_fig, config={"displayModeBar": False, "scrollZoom": True},
+                    dcc.Graph(figure=map_fig, config={"displayModeBar": "hover", "displaylogo": False, "modeBarButtonsToRemove": ["lasso2d", "select2d"], "scrollZoom": True},
                               style={"borderRadius": "0 0 16px 16px"}),
                 ]), md=7),
                 dbc.Col(html.Div(className="chart-card", children=[
