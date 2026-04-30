@@ -16,15 +16,25 @@ Rewrite dari Streamlit ke **Plotly Dash** untuk stabilitas, performa, dan tampil
 
 ```
 project/
-├── app.py                  # Aplikasi utama Dash (satu file)
+├── app.py                  # Entry point Dash
+├── design.py               # Palet warna, font, CSS kustom
+├── data_loader.py          # Logika ETL data, filter wilayah, GeoJSON
+├── components.py           # Pembuat UI Sidebar, Card KPI, Container
+├── map_helper.py           # Modul utilitas khusus Peta Spasial
+├── pages/                  # Seluruh modul dasbor per-halaman
+│   ├── main.py             # Ringkasan Ketenagakerjaan
+│   ├── ews.py              # Early Warning System (3 mode indikator)
+│   ├── puk.py              # Dasbor Penduduk Usia Kerja
+│   ├── ak.py               # Dasbor Angkatan Kerja
+│   ├── pt.py               # Dasbor Pengangguran Terbuka
+│   ├── pyb.py              # Dasbor Penduduk Bekerja
+│   └── ratio.py            # Dasbor Rasio Indikator (TPAK, TPT, EPR)
 ├── requirements.txt        # Dependencies
-├── Database/
+├── Database/               # Folder dataset & spasial
 │   ├── PUK-2018-2025-ver2.xlsx
-│   ├── AK-2018-2025-ver2.xlsx
-│   ├── PT-2018-2025-ver2.xlsx
-│   └── PYB-2018-2025-ver3.xlsx
-└── assets/                 # (opsional) file static
-    └── kemnaker-logo.png
+│   ├── ...
+│   └── indonesia-kabkot-simplified.geojson
+└── assets/                 # File statis gambar dan CSS tambahan
 ```
 
 ## Instalasi
@@ -68,30 +78,29 @@ Buka browser: http://localhost:8050
 
 ## Fitur Dashboard
 
-### 5 Halaman
+### 7 Modul Dasbor Utama
 
-1. **Ringkasan Ketenagakerjaan** — KPI 4 kartu, Funnel chart, Donut komposisi, Bar sektor, Multi-line trend
-2. **Penduduk Usia Kerja (PUK)** — Piramida usia/gender, Status aktivitas, Treemap pendidikan, Trend
-3. **Angkatan Kerja (AK)** — Bar usia per gender, Perbandingan gender, Pendidikan, Trend
-4. **Pengangguran Terbuka (PT)** — Bar kategori, Sunburst, Area chart usia, Multi-line trend
-5. **Penduduk Bekerja (PYB)** — Treemap sektor, Donut status, Bar jabatan, Bar jam kerja, Trend
+1. **Ringkasan Ketenagakerjaan** — Matriks Data Historis Penuh, Grid Alur Partisipasi (*Icicle Grid*), Donut komposisi, Trend Dinamika.
+2. **Early Warning System (EWS)** — Sistem kewaspadaan berdasar top-10 indikator krusial. Mendukung tampilan Peta Resolusi Kabupaten, Treemap Proporsi, dan Ranking Bar Chart.
+3. **Penduduk Usia Kerja (PUK)** — Peta Spasial, Komposisi Aktivitas, Piramida Usia/Gender, Ranking Wilayah.
+4. **Angkatan Kerja (AK)** — Peta Spasial, Tren Historis, Proporsi Wilayah (Desa/Kota).
+5. **Pengangguran Terbuka (PT)** — Sunburst Chart Kategori, Ranking Pengangguran, Peta Sebaran.
+6. **Penduduk Bekerja (PYB)** — Analisis Sektor Formal vs Informal, Treemap Industri Eksekutif, Jam Kerja.
+7. **Rasio (TPAK, TPT, EPR)** — Metrik turunan berbasis kalkulasi rasio antar kumpulan dataset.
 
-### Variasi Chart
+### Variasi Visualisasi Komprehensif
 
-- Funnel chart (alur partisipasi)
-- Treemap (sektor & pendidikan)
-- Sunburst chart (kategori pengangguran)
-- Piramida usia (population pyramid)
-- Area chart
-- Donut/Pie chart
-- Grouped/stacked bar chart
-- Multi-line trend chart
+- **Peta Spasial (Choropleth):** Peta cerdas yang mendukung tingkat zoom makro (Nasional) hingga mikro (Resolusi Kabupaten/Kota) dengan fitur *Auto Bounding-Box Zoom*.
+- **Grid Hierarki Pekerjaan:** (*Icicle Layout*) Menggantikan bagan corong konvensional.
+- **Treemap Skala Penuh:** Analisis proporsional interaktif untuk lapangan pekerjaan.
+- **Radial Chart:** Sunburst & Donut (*Pie*) Chart tanpa *legend* menumpuk, mendistribusikan data langsung di atas irisan roda.
+- **Peringkat Horizontal Bar:** Fitur pengurutan rangking 38 provinsi atau 500+ kabupaten berdasarkan metrik rasio maupun angka absolut.
 
-### Filter
+### Filter Hierarki Navigasi
 
-- Tahun (dropdown)
-- Tingkat Wilayah: Nasional / Provinsi / Kabupaten-Kota
-- Auto-cascade: pilih provinsi → daftar kabkot otomatis update
+- Pemilihan Tahun interaktif.
+- Analisis Tingkat Wilayah multi-lapis: Nasional ↔ Provinsi ↔ Kabupaten/Kota.
+- Filter otomatis bersusun (*auto-cascade*): Pilihan provinsi langsung memperbarui mesin pemetaan resolusi geospasial Plotly secara *on-the-fly*.
 
 ## Deploy ke Server
 

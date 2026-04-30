@@ -1,5 +1,5 @@
 # Project Dash Labor Board - Session Development Log
-**Tanggal Terakhir Update:** 28 April 2026
+**Tanggal Terakhir Update:** 29 April 2026
 **Status:** Stabil & Fitur Lengkap
 
 ---
@@ -150,6 +150,24 @@ Tiga indikator rasio utama dengan dataset versi terbaru (`ver2.xlsx`):
 - **Highlight Struktur Ketenagakerjaan:** Menerapkan prinsip *Gestalt* dan psikologi warna pada grafik Alur Partisipasi (*Icicle Chart*). Angkatan Kerja (Bekerja & Pengangguran) dikelompokkan secara visual dalam kontainer biru, sementara Bukan Angkatan Kerja (Sekolah, MRT, Lainnya) dikelompokkan dalam kontainer abu-abu netral.
 - **Kompaktifikasi Ban Chart:** Menyatukan 4 metrik absolut utama dan 3 metrik rasio (TPAK, TPT, EPR) ke dalam satu baris horizontal memanjang yang elegan (`kpi-row-compact`).
 - **Re-ordering Layout:** Menukar tata letak agar tabel matriks "Rekapitulasi Data Historis" tampil lebih dulu sebelum grafik "Dinamika & Tren".
+
+---
+
+## Sesi 29 April 2026 — Pemetaan Resolusi Kabupaten & Arsitektur EWS ✅
+
+### 1. Perombakan Arsitektur EWS
+- **Transisi Layout:** Merombak tampilan indikator EWS dari kotak-kotak kecil *grid* multi-indikator menjadi **Satu Dasbor Penuh (Single View)**. Pilihan indikator kini disembunyikan dalam menu tarik-turun (*Dropdown*).
+- **Concurrent 3-Chart View:** Seluruh 3 *chart* (Peta, Bar Chart, dan Treemap) ditampilkan secara bersamaan tanpa *toggle switch*, untuk analisis metrik mendalam.
+- **Indikator Informal:** Menambahkan indikator baru EWS yaitu **"Proporsi Pekerja Informal"** dengan kalkulasi rasio otomatis berbasis data total Penduduk Bekerja (PYB).
+
+### 2. Ekspansi Peta Resolusi Kabupaten/Kota (Geospatial Engineering)
+- **Kompresi GeoJSON:** Menyusutkan *file* batas spasial masif `indonesia-kota-kabupaten.json` (92MB) menjadi versi *simplified* berukuran ringan (~3MB) memakai pustaka `geopandas` untuk menghindari *browser memory crash*.
+- **Algoritma Fuzzy Matching:** Menyusun algoritma pencocokan kemiripan teks (*fuzzy matching string*) untuk menjembatani ribuan anomali nama wilayah (contoh: *Medan* vs *Kota Medan*, *Labuhan Batu* vs *Labuhanbatu*) antara data Excel Kemnaker dan poligon GeoJSON, yang kemudian dibekukan menjadi *dictionary* `_KABKOT_NAME_TO_GEO` di `data_loader.py`.
+- **Dynamic Bounding Box:** Menyelesaikan eror kompatibilitas Plotly `fitbounds` dengan cara mengekstraksi koordinat absolut (*west, east, south, north*) dari ke-38 provinsi secara sistematis, dan menginjeksinya langsung ke mesin Plotly. Hasilnya, peta kini dapat secara mulus dan instan melakukan *zoom-in* langsung menukik ke pulau yang dipilih pengguna.
+- **Ekspansi Dasbor Utama:** Mengintegrasikan mesin peta dinamis (Provinsi ↔ Kabupaten) ini ke 5 tab utama (PUK, AK, PYB, PT, Rasio) dengan merevisi modul `map_helper.py` beserta fitur pengurutan rangking *Top & Bottom* Kabupaten-nya.
+
+### 3. Kendali Navigasi Peta (Modebar)
+- Mengaktifkan ulang panel kontrol navigasi peta bawaan Plotly dengan konfigurasi `displayModeBar: "hover"`. Fitur ini menambahkan kendali presisi seperti perbesaran layar (`+`/`-`), pergeseran kanvas (*pan*), dan *Reset View*, tanpa mengorbankan kebersihan antarmuka (*UI*) karena hanya akan muncul saat diletakkan kursor (*hover*).
 
 ---
 
