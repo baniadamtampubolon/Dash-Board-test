@@ -225,3 +225,25 @@ Mono:    'JetBrains Mono', 'IBM Plex Mono', monospace
 
 ---
 *Log dikelola secara otomatis untuk menjaga kontinuitas pengembangan.*
+
+## Sesi 5 Mei 2026 — Finetuning UX, Format Data & Map Optimization
+
+### 1. Peningkatan Stabilitas Peta (Geospatial) ✅
+- Mengganti mekanisme `bounds` Plotly (yang sering memotong peta atau menyebabkan *blank render*) menjadi mekanisme `center + zoom` eksplisit melalui fungsi `center_zoom_from_bounds()` di `data_loader.py`.
+- **Hasil:** Peta baik di dasbor utama maupun EWS sekarang 100% stabil, *centered*, dan tidak pernah terpotong.
+- Menyamakan dimensi peta EWS (`height=520`) dan tingkat perbesaran (`zoom=4` untuk tingkat Nasional) agar selaras dengan tata letak peta dasbor utama.
+
+### 2. Standarisasi Format Angka (2 Desimal) ✅
+- Merombak fungsi formatting (`fmt_compact`, *hover template* `%{y:,.2f}`, tabel historis `fmt_n` dan `fmt_p`) di seluruh `components.py`, `map_helper.py` dan semua *pages* agar mematuhi standar Kemnaker: **selalu 2 angka di belakang koma** (contoh: `123.45K`, `56.78%`).
+- Mengubah *donut chart* Pekerja Formal vs Informal untuk menampilkan **persentase** sebagai label statis dan angka absolut saat *hover*.
+
+### 3. Pemolesan Keterbacaan, Tata Letak & UX ✅
+- **Dark Hover Tooltip:** Menambahkan gaya *hoverlabel* global berwarna gelap (`bgcolor="navy"`, `color="white"`) di `design.py` dan pada peta. Mengatasi isu teks keterangan yang tidak terbaca ketika kursor berada di atas warna terang.
+- **Rincian Bukan AK (PUK):** Memecah kategori "Bukan Angkatan Kerja (BAK)" di grafik donat menjadi rincian spesifik: **Sekolah**, **Mengurus Rumah Tangga**, dan **Lainnya**.
+- **Trend Ringkasan Eksekutif:** Menambahkan garis tren (format putus-putus) untuk Sekolah, Mengurus RT, dan Lainnya; serta menghapus indikator Angkatan Kerja (AK) agar grafik lebih fokus pada status rincian kegiatan penduduk usia kerja.
+- **Layout EWS Diperluas:** Merombak susunan struktur kolom halaman EWS menjadi satu kolom penuh (`width=12`) berurutan ke bawah: Peta → Ranking Bar → Treemap. Memberikan ruang yang jauh lebih lega bagi masing-masing grafik.
+
+### 4. Perbaikan Logika Pengurutan EWS ✅
+- Memperbaiki anomali pada *radio button* EWS (pengurutan Bar Chart) di mana penugasan variabel Pandas `asc` / `desc` sempat terbalik terhadap penamaan UI-nya.
+- Mengatur *default state* saat halaman EWS dimuat pertama kali menjadi "Tertinggi".
+- Memperbaiki teks dinamis pada sub-judul agar tidak lagi salah menyebutkan kata "Tertinggi/Terendah".
