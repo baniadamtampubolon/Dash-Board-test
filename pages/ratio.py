@@ -47,7 +47,7 @@ def _build_ratio_page(df, data, year, level, prov, kab, *,
         line=dict(color=accent, width=3, shape='spline'),
         marker=dict(size=8, color=accent, line=dict(color='#fff', width=1.5)),
         fill='tozeroy', fillcolor=fill_rgba,
-        text=[f"{v:.1f}%" for v in age_vals], textposition='top center',
+        text=[f"{v:.2f}%" for v in age_vals], textposition='top center',
         textfont=dict(size=9, color=accent),
         hovertemplate="<b>%{x}</b><br>%{y:.2f}%<extra></extra>",
     ))
@@ -77,7 +77,7 @@ def _build_ratio_page(df, data, year, level, prov, kab, *,
         line=dict(color=accent, width=3, shape='spline'),
         fill='tozeroy', fillcolor=fill_rgba,
         marker=dict(size=8, color=accent, line=dict(color='#fff', width=1.5)),
-        text=[f"{v:.1f}%" for v in t[ratio_col]], textposition='top center',
+        text=[f"{v:.2f}%" for v in t[ratio_col]], textposition='top center',
         textfont=dict(size=10, color=accent),
         hovertemplate=f"Tahun %{{x}}: %{{y:.2f}}%<extra></extra>",
     ))
@@ -99,7 +99,7 @@ def _build_ratio_page(df, data, year, level, prov, kab, *,
         pd.DataFrame({'Pendidikan': list(edu_map.values()), label_short: edu_vals}),
         x='Pendidikan', y=label_short, color=label_short,
         color_continuous_scale=color_scale,
-        text=[f"{v:.1f}%" for v in edu_vals],
+        text=[f"{v:.2f}%" for v in edu_vals],
     )
     edu_fig.update_traces(textposition='outside')
     edu_fig.update_coloraxes(showscale=False)

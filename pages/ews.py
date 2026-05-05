@@ -1,4 +1,4 @@
-"""Early Warning System (EWS) — Top 10 daerah per kategori dengan 3 mode chart."""
+"""Early Warning System (EWS) —   daerah per kategori dengan 3 mode chart."""
 
 from dash import dcc, html, Input, Output
 import dash_bootstrap_components as dbc
@@ -88,7 +88,7 @@ _EWS_INDICATORS = [
 #  Data Helpers
 # ══════════════════════════════════════════════════════════════════════════════════
 def _get_all_regions(cfg, year, level, prov, show_pct=False):
-    """Get ALL region data for a given indicator (not just top 10)."""
+    """Get ALL region data for a given indicator (not just  )."""
     df = load_data(cfg['file'])
 
     if level == 'nasional':
@@ -142,7 +142,7 @@ def _get_all_regions(cfg, year, level, prov, show_pct=False):
 
 
 def _get_top10(all_data, sort_asc):
-    """Extract top 10 from all data."""
+    """Extract   from all data."""
     top = all_data.sort_values('value', ascending=sort_asc).head(10)
     return top.sort_values('value', ascending=not sort_asc)
 
@@ -151,7 +151,7 @@ def _get_top10(all_data, sort_asc):
 #  Chart Builders
 # ══════════════════════════════════════════════════════════════════════════════════
 def _make_bar(cfg, top10, show_pct=False):
-    """Horizontal bar chart for top 10."""
+    """Horizontal bar chart for  ."""
     if top10.empty:
         return go.Figure()
 
@@ -163,7 +163,7 @@ def _make_bar(cfg, top10, show_pct=False):
         hover = "<b>%{y}</b><br>" + f"{cfg['name']}: " + "%{x:.2f}%<extra></extra>"
     else:
         text_vals = [fmt_compact(v) for v in plot_data['value']]
-        hover = "<b>%{y}</b><br>" + f"{cfg['name']}: " + "%{x:,.0f}<extra></extra>"
+        hover = "<b>%{y}</b><br>" + f"{cfg['name']}: " + "%{x:,.2f}<extra></extra>"
 
     fig = px.bar(plot_data, x='value', y='region', orientation='h',
                  text=text_vals, color='value', 
@@ -202,7 +202,7 @@ def _make_map(cfg, all_data, year, level, prov):
     if cfg['is_ratio']:
         hover = "<b>%{customdata[0]}</b><br>" + f"{cfg['name']}: " + "%{z:.2f}%<extra></extra>"
     else:
-        hover = "<b>%{customdata[0]}</b><br>" + f"{cfg['name']}: " + "%{z:,.0f}<extra></extra>"
+        hover = "<b>%{customdata[0]}</b><br>" + f"{cfg['name']}: " + "%{z:,.2f}<extra></extra>"
 
     if level == 'nasional':
         all_data['geo_name_plot'] = all_data['geo_name'].map(lambda x: _PROV_NAME_TO_GEO.get(x, x))
@@ -225,10 +225,10 @@ def _make_map(cfg, all_data, year, level, prov):
     ))
     if level == 'nasional':
         map_center = dict(lat=-2.5, lon=118)
-        map_zoom = 3.0
+        map_zoom = 4
     else:
         map_center, map_zoom = center_zoom_from_bounds(geo_prov)
-        map_zoom = max(1, map_zoom + 0.5)  # zoom out a bit more for EWS compact view
+        map_zoom = map_zoom + 1
 
     fig.update_layout(
         map=dict(
@@ -236,9 +236,10 @@ def _make_map(cfg, all_data, year, level, prov):
             center=map_center,
             zoom=map_zoom,
         ),
-        margin=dict(l=0, r=0, t=0, b=0), height=300,
+        margin=dict(l=0, r=0, t=0, b=0), height=520,
         paper_bgcolor="rgba(0,0,0,0)",
         font=dict(family="Plus Jakarta Sans, sans-serif"),
+        hoverlabel=dict(bgcolor=PALETTE["navy"], font=dict(color="white"), bordercolor=PALETTE["navy"]),
     )
     return fig
 
@@ -270,7 +271,7 @@ def _make_treemap(cfg, all_data):
     fig.update_traces(
         texttemplate="<b>%{label}</b><br>%{customdata[1]}",
         hovertemplate="<b>%{customdata[0]}</b><br>" + f"{cfg['name']}: " +
-                      "%{customdata[1]:,.0f}<extra></extra>" if not cfg['is_ratio']
+                      "%{customdata[1]:,.2f}<extra></extra>" if not cfg['is_ratio']
         else "<b>%{customdata[0]}</b><br>" + f"{cfg['name']}: " +
              "%{customdata[1]:.2f}%<extra></extra>",
         textfont=dict(size=11),
@@ -280,6 +281,7 @@ def _make_treemap(cfg, all_data):
         margin=dict(l=2, r=2, t=2, b=2), height=300,
         paper_bgcolor="rgba(0,0,0,0)",
         font=dict(family="Plus Jakarta Sans, sans-serif"),
+        hoverlabel=dict(bgcolor=PALETTE["navy"], font=dict(color="white"), bordercolor=PALETTE["navy"]),
     )
     return fig
 
@@ -335,10 +337,10 @@ def render_ews(year, level, prov, kab):
             dbc.RadioItems(
                 id="ews-sort",
                 options=[
-                    {"label": "10 Terendah", "value": "desc"},
-                    {"label": "10 Tertinggi", "value": "asc"},
+                    {"label": "Terendah", "value": "desc"},
+                    {"label": "Tertinggi", "value": "asc"},
                 ],
-                value="desc",
+                value="asc",
                 inline=True,
                 className="ews-toggle",
             ),
@@ -367,12 +369,12 @@ def render_ews(year, level, prov, kab):
         }, children=[
             html.Div(style={"display": "flex", "alignItems": "center", "gap": "6px"}, children=[
                 html.Span("📊", style={"fontSize": "14px"}),
-                html.Span("10 Indikator", style={
+                html.Span("indikator", style={
                     "fontSize": "13px", "fontWeight": "600", "color": PALETTE["text"]}),
             ]),
             html.Div(style={"display": "flex", "alignItems": "center", "gap": "6px"}, children=[
                 html.Span("🏢", style={"fontSize": "14px"}),
-                html.Span(f"Top 10 {sub_label}", style={
+                html.Span(f"  {sub_label}", style={
                     "fontSize": "13px", "fontWeight": "600", "color": PALETTE["text"]}),
             ]),
             html.Div(style={"display": "flex", "alignItems": "center", "gap": "6px"}, children=[
@@ -433,21 +435,16 @@ def register_ews_callbacks(app):
         # 3. Treemap
         tree_fig = _make_treemap(cfg, all_data)
         
-        sort_word = "Terendah" if use_asc else "Tertinggi"
+        sort_word = "Tertinggi" if use_asc else "Terendah"
         
         return html.Div([
-            # Row 1: Map & Treemap
+            # Row 1: Map
             dbc.Row([
                 dbc.Col(html.Div(className="chart-card", children=[
                     _card_header("Peta Sebaran Wilayah", f"Distribusi indikator di {scope_label} ({year})"),
                     dcc.Graph(figure=map_fig, config={"displayModeBar": "hover", "displaylogo": False, "modeBarButtonsToRemove": ["lasso2d", "select2d"], "scrollZoom": True},
                               style={"borderRadius": "0 0 16px 16px"}),
-                ]), md=7),
-                dbc.Col(html.Div(className="chart-card", children=[
-                    _card_header("Proporsi Visual (Treemap)", f"Komparasi {sub_label} di {scope_label} ({year})"),
-                    dcc.Graph(figure=tree_fig, config={"displayModeBar": False},
-                              style={"borderRadius": "0 0 16px 16px"}),
-                ]), md=5),
+                ]), md=12),
             ], className="g-3 mb-3"),
             
             # Row 2: Full Bar Chart
@@ -455,6 +452,15 @@ def register_ews_callbacks(app):
                 dbc.Col(html.Div(className="chart-card", children=[
                     _card_header("Peringkat Lengkap Wilayah", f"Urutan {sub_label} {sort_word} — {scope_label} ({year})"),
                     dcc.Graph(figure=bar_fig, config={"displayModeBar": False},
+                              style={"borderRadius": "0 0 16px 16px"}),
+                ]), md=12),
+            ], className="g-3 mb-3"),
+            
+            # Row 3: Treemap
+            dbc.Row([
+                dbc.Col(html.Div(className="chart-card", children=[
+                    _card_header("Proporsi Visual (Treemap)", f"Komparasi {sub_label} di {scope_label} ({year})"),
+                    dcc.Graph(figure=tree_fig, config={"displayModeBar": False},
                               style={"borderRadius": "0 0 16px 16px"}),
                 ]), md=12),
             ], className="g-3 mb-3"),

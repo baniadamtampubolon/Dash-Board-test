@@ -13,11 +13,11 @@ from data_loader import _YEARS, _PROV_LIST
 def fmt_compact(val):
     if val >= 1_000_000:
         v = val / 1_000_000
-        return f"{v:.1f}M" if v % 1 else f"{int(v)}M"
+        return f"{v:.2f}M"
     elif val >= 1_000:
         v = val / 1_000
-        return f"{v:.1f}K" if v % 1 else f"{int(v)}K"
-    return f"{val:,.0f}"
+        return f"{v:.2f}K"
+    return f"{val:,.2f}"
 
 
 

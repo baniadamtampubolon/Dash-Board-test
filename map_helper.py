@@ -72,7 +72,7 @@ def build_geomap_layout(df, year, level, prov, indicator_key):
         color_scale = [[0, "#E3EDF9"], [0.35, "#90CAF9"], [0.65, PALETTE["sky"]], [1, PALETTE["navy"]]]
         fmt_val = lambda v: f"{v:.2f}%"
     else:
-        hover_tmpl = "<b>%{customdata[0]}</b><br>" + f"{cfg['label']}: " + "%{z:,.0f} jiwa<extra></extra>"
+        hover_tmpl = "<b>%{customdata[0]}</b><br>" + f"{cfg['label']}: " + "%{z:,.2f} jiwa<extra></extra>"
         color_scale = [[0, "#E6F4F1"], [0.3, "#64B5F6"], [0.6, PALETTE["blue"]], [1, PALETTE["navy"]]]
         fmt_val = lambda v: fmt_compact(v)
 
@@ -109,6 +109,7 @@ def build_geomap_layout(df, year, level, prov, indicator_key):
         height=520,
         paper_bgcolor="rgba(0,0,0,0)",
         font=dict(family="Plus Jakarta Sans, sans-serif"),
+        hoverlabel=dict(bgcolor=PALETTE["navy"], font=dict(color="white"), bordercolor=PALETTE["navy"]),
     )
 
     # ── Top 3 & Bottom 3 ─────────────────────────────────────────────────────
@@ -153,7 +154,7 @@ def build_geomap_layout(df, year, level, prov, indicator_key):
     )
     bar_fig.update_traces(
         textposition='outside', textfont_size=9,
-        hovertemplate="<b>%{y}</b><br>" + f"{indicator_key}: " + "%{x:,.0f}<extra></extra>" if not cfg['is_ratio']
+        hovertemplate="<b>%{y}</b><br>" + f"{indicator_key}: " + "%{x:,.2f}<extra></extra>" if not cfg['is_ratio']
         else "<b>%{y}</b><br>" + f"{indicator_key}: " + "%{x:.2f}%<extra></extra>",
     )
     bar_fig.update_coloraxes(showscale=False)

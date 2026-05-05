@@ -81,7 +81,7 @@ Buka browser: http://localhost:8050
 ### 7 Modul Dasbor Utama
 
 1. **Ringkasan Ketenagakerjaan** — Matriks Data Historis Penuh, Grid Alur Partisipasi (*Icicle Grid*), Donut komposisi, Trend Dinamika.
-2. **Early Warning System (EWS)** — Sistem kewaspadaan berdasar top-10 indikator krusial. Mendukung tampilan Peta Resolusi Kabupaten, Treemap Proporsi, dan Ranking Bar Chart.
+2. **Early Warning System (EWS)** — Sistem kewaspadaan berdasar top-indikator krusial. Mendukung tampilan Peta Resolusi Kabupaten, Treemap Proporsi, dan Ranking Bar Chart.
 3. **Penduduk Usia Kerja (PUK)** — Peta Spasial, Komposisi Aktivitas, Piramida Usia/Gender, Ranking Wilayah.
 4. **Angkatan Kerja (AK)** — Peta Spasial, Tren Historis, Proporsi Wilayah (Desa/Kota).
 5. **Pengangguran Terbuka (PT)** — Sunburst Chart Kategori, Ranking Pengangguran, Peta Sebaran.

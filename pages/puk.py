@@ -29,6 +29,18 @@ def render_puk(year, level, prov, kab):
     working    = int(data_pyb['total'].sum())
     unemployed = int(data_pt['total'].sum())
     bak        = max(0, total - working - unemployed)
+    
+    # Rincian BAK
+    sekolah = int(data.get('keg_sklh', pd.Series([0])).sum())
+    mrt = int(data.get('keg_mrt', pd.Series([0])).sum())
+    lainnya = int(data.get('keg_lain', pd.Series([0])).sum())
+    # Normalisasi jika total ketiganya tidak sama persis dengan bak (anomali data)
+    bak_sum = sekolah + mrt + lainnya
+    if bak_sum > 0 and abs(bak_sum - bak) > 0:
+        sekolah = int(sekolah / bak_sum * bak)
+        mrt = int(mrt / bak_sum * bak)
+        lainnya = bak - sekolah - mrt
+
     lk = int(data.get('jk_lk', pd.Series([0])).sum())
     pr = int(data.get('jk_pr', pd.Series([0])).sum())
     kota = int(data.get('kls_kota', pd.Series([0])).sum())
@@ -41,7 +53,7 @@ def render_puk(year, level, prov, kab):
         textinfo='none', textposition='outside',
         text=[f"Laki-laki<br>{fmt_compact(lk)}", f"Perempuan<br>{fmt_compact(pr)}"],
         texttemplate="%{text}",
-        hovertemplate="<b>%{label}</b><br>%{value:,.0f} jiwa<extra></extra>",
+        hovertemplate="<b>%{label}</b><br>%{value:,.2f} jiwa<extra></extra>",
     ))
     gen_fig.add_annotation(text=f"<b>PUK</b><br>Gender", x=0.5, y=0.5,
                            font=dict(size=12, color=PALETTE["text"]), showarrow=False)
@@ -54,7 +66,7 @@ def render_puk(year, level, prov, kab):
         textinfo='none', textposition='outside',
         text=[f"Perkotaan<br>{fmt_compact(kota)}", f"Perdesaan<br>{fmt_compact(desa)}"],
         texttemplate="%{text}",
-        hovertemplate="<b>%{label}</b><br>%{value:,.0f} jiwa<extra></extra>",
+        hovertemplate="<b>%{label}</b><br>%{value:,.2f} jiwa<extra></extra>",
     ))
     kd_fig.add_annotation(text=f"<b>PUK</b><br>Wilayah", x=0.5, y=0.5,
                           font=dict(size=12, color=PALETTE["text"]), showarrow=False)
@@ -62,16 +74,24 @@ def render_puk(year, level, prov, kab):
 
     # ── Status aktivitas donut ────────────────────────────────────────────────
     act_fig = go.Figure(go.Pie(
-        labels=["Bekerja", "Pengangguran", "Bukan AK"], values=[working, unemployed, bak], hole=0.6,
-        marker=dict(colors=[PALETTE["teal"], "#FFB74D", "#CBD5E1"]),
+        labels=["Bekerja", "Pengangguran", "Sekolah", "Mengurus Rumah Tangga", "Lainnya"], 
+        values=[working, unemployed, sekolah, mrt, lainnya], 
+        hole=0.6,
+        marker=dict(colors=[PALETTE["teal"], PALETTE["red"], "#A5D6A7", "#81C784", "#C8E6C9"]),
         textinfo='none', textposition='outside',
-        text=[f"Bekerja<br>{fmt_compact(working)}", f"Pengangguran<br>{fmt_compact(unemployed)}", f"Bukan AK<br>{fmt_compact(bak)}"],
+        text=[
+            f"Bekerja<br>{fmt_compact(working)}", 
+            f"Pengangguran<br>{fmt_compact(unemployed)}", 
+            f"Sekolah<br>{fmt_compact(sekolah)}",
+            f"Mengurus RT<br>{fmt_compact(mrt)}",
+            f"Lainnya<br>{fmt_compact(lainnya)}"
+        ],
         texttemplate="%{text}",
-        hovertemplate="<b>%{label}</b><br>%{value:,.0f} jiwa<extra></extra>",
+        hovertemplate="<b>%{label}</b><br>%{value:,.2f} jiwa<extra></extra>",
     ))
     act_fig.add_annotation(text="<b>Status<br>Aktivitas</b>", x=0.5, y=0.5,
                            font=dict(size=11, color=PALETTE["text"]), showarrow=False)
-    apply_chart(act_fig, height=300, no_legend=False)
+    apply_chart(act_fig, height=320, no_legend=True)
 
     # ── Age line chart (jumlah) ───────────────────────────────────────────────
     age_m = {
@@ -87,7 +107,7 @@ def render_puk(year, level, prov, kab):
         fill='tozeroy', fillcolor='rgba(19,83,160,0.08)',
         text=[fmt_compact(v) for v in age_vals], textposition='top center',
         textfont=dict(size=9, color=PALETTE["blue"]),
-        hovertemplate="<b>%{x}</b><br>%{y:,.0f} jiwa<extra></extra>",
+        hovertemplate="<b>%{x}</b><br>%{y:,.2f} jiwa<extra></extra>",
     ))
     apply_chart(age_fig, height=340, no_legend=True)
     age_fig.update_layout(
@@ -123,7 +143,7 @@ def render_puk(year, level, prov, kab):
             marker=dict(size=7, color=cl, line=dict(color='#fff', width=1.5)),
             text=[fmt_compact(v) for v in dt['total']], textposition='top center',
             textfont=dict(size=9, color=cl),
-            hovertemplate=f"<b>{nm}</b>: %{{y:,.0f}}<extra></extra>",
+            hovertemplate=f"<b>{nm}</b>: %{{y:,.2f}}<extra></extra>",
         ))
     apply_chart(trend, height=340)
     trend.update_layout(

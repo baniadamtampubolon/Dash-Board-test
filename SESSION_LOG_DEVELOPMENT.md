@@ -37,15 +37,15 @@ Memecah file `app.py` (1.712 baris) menjadi **12 file modular**:
 - Sidebar scroll fix: `max-height: 100vh` + `overflow-y: auto` di `custom.css`
 
 ### 4. Early Warning System (EWS) ✅
-Halaman EWS menampilkan **10 indikator kunci** dengan **3 mode visualisasi** (toggle switch):
+Halaman EWS menampilkan **indikator kunci** dengan **3 mode visualisasi** (toggle switch):
 
 | Mode | Tampilan |
 |---|---|
-| Bar Chart | Top 10 daerah per indikator (horizontal bar) |
+| Bar Chart |   daerah per indikator (horizontal bar) |
 | Peta Sebaran | Choropleth map per indikator (nasional only) |
 | Treemap | Proporsi daerah per indikator |
 
-**10 Indikator EWS:**
+**indikator EWS:**
 
 | # | Indikator | Sumber | Kolom/Rumus |
 |---|---|---|---|
@@ -60,8 +60,8 @@ Halaman EWS menampilkan **10 indikator kunci** dengan **3 mode visualisasi** (to
 | 9 | TPT | TPT | `TPT` |
 | 10 | EPR | EPR | `EPR` |
 
-- **Nasional:** Top 10 Provinsi per indikator
-- **Provinsi:** Top 10 Kabupaten/Kota dalam provinsi terpilih
+- **Nasional:**   Provinsi per indikator
+- **Provinsi:**   Kabupaten/Kota dalam provinsi terpilih
 - **Callback:** `register_ews_callbacks(app)` untuk mode switching
 
 ### 5. Revisi Dashboard PUK, AK, PT, PYB ✅
@@ -178,7 +178,7 @@ Tiga indikator rasio utama dengan dataset versi terbaru (`ver2.xlsx`):
 - **Ranking Visual:** Menambahkan penanda peringkat dinamis (`#1`, `#2`, `#3`) berdampingan langsung dengan ikon Medali/Piala (menggunakan *Inline-Flexbox* yang elastis) di kartu *Top & Bottom* Provinsi.
 
 ### 2. Fitur Interaktif EWS (Urutan & Satuan)
-- **Toggle Urutan (Tertinggi vs Terendah):** Menambahkan kontrol interaktif untuk menukar arah pengurutan data *Top 10* pada mode *Bar Chart*, menimpa konfigurasi orientasi dasar indikator.
+- **Toggle Urutan (Tertinggi vs Terendah):** Menambahkan kontrol interaktif untuk menukar arah pengurutan data * * pada mode *Bar Chart*, menimpa konfigurasi orientasi dasar indikator.
 - **Toggle Satuan (Angka vs Persen):** Menambahkan konversi canggih yang merubah hitungan absolut menjadi rasio persentase riil. Algoritma ini mencari kolom total aktual (misal `PT` atau `PYB`) lalu membagi populasi metrik di suatu wilayah dengan total populasinya sendiri, menghasilkan *insight* prioritas wilayah baru yang berbasis keparahan rasio. Fitur ini cerdas mengabaikan metrik yang secara bawaan sudah berformat rasio.
 
 ### 3. Analisis Formal vs Informal (PYB)

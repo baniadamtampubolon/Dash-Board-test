@@ -28,7 +28,7 @@ CHART = dict(
     plot_bgcolor="rgba(0,0,0,0)",
     font=dict(family="Inter, sans-serif", color=PALETTE["text"], size=12),
     margin=dict(l=12, r=12, t=48, b=12),
-    hoverlabel=dict(bgcolor=PALETTE["surface"], font_size=12, bordercolor=PALETTE["border"]),
+    hoverlabel=dict(bgcolor=PALETTE["navy"], font=dict(size=12, color="white"), bordercolor=PALETTE["navy"]),
     legend=dict(
         orientation="h", yanchor="bottom", y=-0.28,
         xanchor="center", x=0.5,

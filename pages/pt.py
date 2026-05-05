@@ -53,7 +53,7 @@ def render_pt(year, level, prov, kab):
         textinfo='none', textposition='outside',
         text=[f"Laki-laki<br>{fmt_compact(lk)}", f"Perempuan<br>{fmt_compact(pr)}"],
         texttemplate="%{text}",
-        hovertemplate="<b>%{label}</b><br>%{value:,.0f} jiwa<extra></extra>",
+        hovertemplate="<b>%{label}</b><br>%{value:,.2f} jiwa<extra></extra>",
     ))
     gen_fig.add_annotation(text=f"<b>PT</b><br>Gender", x=0.5, y=0.5,
                            font=dict(size=12, color=PALETTE["text"]), showarrow=False)
@@ -66,7 +66,7 @@ def render_pt(year, level, prov, kab):
         textinfo='none', textposition='outside',
         text=[f"Perkotaan<br>{fmt_compact(kota)}", f"Perdesaan<br>{fmt_compact(desa)}"],
         texttemplate="%{text}",
-        hovertemplate="<b>%{label}</b><br>%{value:,.0f} jiwa<extra></extra>",
+        hovertemplate="<b>%{label}</b><br>%{value:,.2f} jiwa<extra></extra>",
     ))
     kd_fig.add_annotation(text=f"<b>PT</b><br>Wilayah", x=0.5, y=0.5,
                           font=dict(size=12, color=PALETTE["text"]), showarrow=False)
@@ -86,7 +86,7 @@ def render_pt(year, level, prov, kab):
         fill='tozeroy', fillcolor='rgba(232,69,69,0.08)',
         text=[fmt_compact(v) for v in age_vals], textposition='top center',
         textfont=dict(size=9, color=PALETTE["red"]),
-        hovertemplate="<b>%{x}</b><br>%{y:,.0f} jiwa<extra></extra>",
+        hovertemplate="<b>%{x}</b><br>%{y:,.2f} jiwa<extra></extra>",
     ))
     apply_chart(age_fig, height=340, no_legend=True)
     age_fig.update_layout(
@@ -103,7 +103,7 @@ def render_pt(year, level, prov, kab):
         textinfo='none', textposition='outside',
         text=[f"{l}<br>{fmt_compact(v)}" for l, v in zip(kat_labels, pt_vals)],
         texttemplate="%{text}",
-        hovertemplate="<b>%{label}</b><br>%{value:,.0f} jiwa<extra></extra>",
+        hovertemplate="<b>%{label}</b><br>%{value:,.2f} jiwa<extra></extra>",
     ))
     kat_fig.add_annotation(text="<b>Proporsi<br>Kategori</b>", x=0.5, y=0.5,
                            font=dict(size=11, color=PALETTE["text"]), showarrow=False)
@@ -121,7 +121,7 @@ def render_pt(year, level, prov, kab):
             x=ts_g['thn'], y=ts_g[col], name=lbl, mode='lines+markers',
             line=dict(color=clr, width=3 if col=='total' else 2, shape='spline'),
             marker=dict(size=6, color=clr, line=dict(color='#fff', width=1)),
-            hovertemplate=f"<b>{lbl}</b>: %{{y:,.0f}}<extra></extra>",
+            hovertemplate=f"<b>{lbl}</b>: %{{y:,.2f}}<extra></extra>",
         ))
     apply_chart(trend_fig, height=340)
     trend_fig.update_layout(

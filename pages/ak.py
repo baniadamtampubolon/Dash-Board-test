@@ -33,7 +33,7 @@ def render_ak(year, level, prov, kab):
         textinfo='none', textposition='outside',
         text=[f"Laki-laki<br>{fmt_compact(lk)}", f"Perempuan<br>{fmt_compact(pr)}"],
         texttemplate="%{text}",
-        hovertemplate="<b>%{label}</b><br>%{value:,.0f} jiwa<extra></extra>",
+        hovertemplate="<b>%{label}</b><br>%{value:,.2f} jiwa<extra></extra>",
     ))
     gen_fig.add_annotation(text=f"<b>AK</b><br>Gender", x=0.5, y=0.5,
                            font=dict(size=12, color=PALETTE["text"]), showarrow=False)
@@ -46,7 +46,7 @@ def render_ak(year, level, prov, kab):
         textinfo='none', textposition='outside',
         text=[f"Perkotaan<br>{fmt_compact(kota)}", f"Perdesaan<br>{fmt_compact(desa)}"],
         texttemplate="%{text}",
-        hovertemplate="<b>%{label}</b><br>%{value:,.0f} jiwa<extra></extra>",
+        hovertemplate="<b>%{label}</b><br>%{value:,.2f} jiwa<extra></extra>",
     ))
     kd_fig.add_annotation(text=f"<b>AK</b><br>Wilayah", x=0.5, y=0.5,
                           font=dict(size=12, color=PALETTE["text"]), showarrow=False)
@@ -66,7 +66,7 @@ def render_ak(year, level, prov, kab):
         fill='tozeroy', fillcolor='rgba(19,83,160,0.08)',
         text=[fmt_compact(v) for v in age_vals], textposition='top center',
         textfont=dict(size=9, color=PALETTE["blue"]),
-        hovertemplate="<b>%{x}</b><br>%{y:,.0f} jiwa<extra></extra>",
+        hovertemplate="<b>%{x}</b><br>%{y:,.2f} jiwa<extra></extra>",
     ))
     apply_chart(age_fig, height=340, no_legend=True)
     age_fig.update_layout(
@@ -98,7 +98,7 @@ def render_ak(year, level, prov, kab):
         marker=dict(size=8, color=PALETTE["blue"], line=dict(color='#fff', width=1.5)),
         text=[fmt_compact(v) for v in t['total']], textposition='top center',
         textfont=dict(size=10, color=PALETTE["blue"]),
-        hovertemplate="Tahun %{x}: %{y:,.0f}<extra></extra>",
+        hovertemplate="Tahun %{x}: %{y:,.2f}<extra></extra>",
     ))
     apply_chart(trend_fig, height=340)
     trend_fig.update_layout(
@@ -118,8 +118,8 @@ def render_ak(year, level, prov, kab):
         ]),
         dbc.Row([
             dbc.Col(kpi_card(DashIconify(icon="mdi:briefcase", width=24), "Total Angkatan Kerja", fmt_compact(total), PALETTE["blue"], f"{PALETTE['blue']}14"), md=4),
-            dbc.Col(kpi_card(DashIconify(icon="ion:male", width=24), "Laki-laki", f"{fmt_compact(lk)} ({lk/(lk+pr)*100:.1f}%)" if (lk+pr)>0 else "—", PALETTE["indigo"], f"{PALETTE['indigo']}14"), md=4),
-            dbc.Col(kpi_card(DashIconify(icon="ion:female", width=24), "Perempuan",  f"{fmt_compact(pr)} ({pr/(lk+pr)*100:.1f}%)" if (lk+pr)>0 else "—", "#E91E8C", "#E91E8C14"), md=4),
+            dbc.Col(kpi_card(DashIconify(icon="ion:male", width=24), "Laki-laki", f"{fmt_compact(lk)} ({lk/(lk+pr)*100:.2f}%)" if (lk+pr)>0 else "—", PALETTE["indigo"], f"{PALETTE['indigo']}14"), md=4),
+            dbc.Col(kpi_card(DashIconify(icon="ion:female", width=24), "Perempuan",  f"{fmt_compact(pr)} ({pr/(lk+pr)*100:.2f}%)" if (lk+pr)>0 else "—", "#E91E8C", "#E91E8C14"), md=4),
         ], className="g-3 mb-2"),
 
         map_section,

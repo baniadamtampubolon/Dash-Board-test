@@ -33,7 +33,7 @@ def render_pyb(year, level, prov, kab):
         textinfo='none', textposition='outside',
         text=[f"Laki-laki<br>{fmt_compact(lk)}", f"Perempuan<br>{fmt_compact(pr)}"],
         texttemplate="%{text}",
-        hovertemplate="<b>%{label}</b><br>%{value:,.0f} jiwa<extra></extra>",
+        hovertemplate="<b>%{label}</b><br>%{value:,.2f} jiwa<extra></extra>",
     ))
     gen_fig.add_annotation(text=f"<b>PYB</b><br>Gender", x=0.5, y=0.5,
                            font=dict(size=12, color=PALETTE["text"]), showarrow=False)
@@ -46,7 +46,7 @@ def render_pyb(year, level, prov, kab):
         textinfo='none', textposition='outside',
         text=[f"Perkotaan<br>{fmt_compact(kota)}", f"Perdesaan<br>{fmt_compact(desa)}"],
         texttemplate="%{text}",
-        hovertemplate="<b>%{label}</b><br>%{value:,.0f} jiwa<extra></extra>",
+        hovertemplate="<b>%{label}</b><br>%{value:,.2f} jiwa<extra></extra>",
     ))
     kd_fig.add_annotation(text=f"<b>PYB</b><br>Wilayah", x=0.5, y=0.5,
                           font=dict(size=12, color=PALETTE["text"]), showarrow=False)
@@ -66,7 +66,7 @@ def render_pyb(year, level, prov, kab):
         fill='tozeroy', fillcolor='rgba(13,158,138,0.08)',
         text=[fmt_compact(v) for v in age_vals], textposition='top center',
         textfont=dict(size=9, color=PALETTE["teal"]),
-        hovertemplate="<b>%{x}</b><br>%{y:,.0f} jiwa<extra></extra>",
+        hovertemplate="<b>%{x}</b><br>%{y:,.2f} jiwa<extra></extra>",
     ))
     apply_chart(age_fig, height=340, no_legend=True)
     age_fig.update_layout(
@@ -89,8 +89,8 @@ def render_pyb(year, level, prov, kab):
     sektor_tree = px.treemap(ldf, path=['Sektor'], values='Jumlah',
                               color='Jumlah', color_continuous_scale=["#DBEAFE", PALETTE["blue"]])
     sektor_tree.update_traces(
-        texttemplate="<b>%{label}</b><br>%{value:,.0f}",
-        hovertemplate="%{label}<br>%{value:,.0f}<extra></extra>",
+        texttemplate="<b>%{label}</b><br>%{value:,.2f}",
+        hovertemplate="%{label}<br>%{value:,.2f}<extra></extra>",
     )
     sektor_tree.update_coloraxes(showscale=False)
     apply_chart(sektor_tree, height=400)
@@ -107,7 +107,7 @@ def render_pyb(year, level, prov, kab):
         textinfo='none', textposition='outside',
         text=[f"{l}<br>{fmt_compact(v)}" for l, v in zip(sta_map.values(), sv)],
         texttemplate="%{text}",
-        hovertemplate="<b>%{label}</b><br>%{value:,.0f} jiwa<extra></extra>",
+        hovertemplate="<b>%{label}</b><br>%{value:,.2f} jiwa<extra></extra>",
     ))
     sta_fig.add_annotation(text="<b>Status<br>Pekerjaan</b>", x=0.5, y=0.5,
                            font=dict(size=12, color=PALETTE["text"]), showarrow=False)
@@ -121,9 +121,8 @@ def render_pyb(year, level, prov, kab):
         labels=['Formal', 'Informal'], values=[v_formal, v_informal], hole=0.6,
         marker=dict(colors=[PALETTE["teal"], PALETTE["gold"]]),
         textinfo='none', textposition='outside',
-        text=[f"Formal<br>{fmt_compact(v_formal)}", f"Informal<br>{fmt_compact(v_informal)}"],
-        texttemplate="%{text}",
-        hovertemplate="<b>%{label}</b><br>%{value:,.0f} jiwa<br>%{percent}<extra></extra>",
+        texttemplate="<b>%{label}</b><br>%{percent:.2%}",
+        hovertemplate="<b>%{label}</b><br>%{value:,.2f} jiwa<extra></extra>",
     ))
     formal_fig.add_annotation(text="<b>Pekerja</b>", x=0.5, y=0.5,
                            font=dict(size=14, color=PALETTE["text"]), showarrow=False)
@@ -156,7 +155,7 @@ def render_pyb(year, level, prov, kab):
         marker_color=[PALETTE["sky"], PALETTE["teal"], PALETTE["blue"],
                       PALETTE["indigo"], PALETTE["navy"]],
         text=[fmt_compact(v) for v in jmv], textposition='outside',
-        hovertemplate="<b>%{x}</b><br>%{y:,.0f}<extra></extra>",
+        hovertemplate="<b>%{x}</b><br>%{y:,.2f}<extra></extra>",
     ))
     apply_chart(jam_fig, height=300, no_legend=True)
     jam_fig.update_layout(xaxis_title="", yaxis_title="")
@@ -170,7 +169,7 @@ def render_pyb(year, level, prov, kab):
         marker=dict(size=8, color=PALETTE["teal"], line=dict(color='#fff', width=1.5)),
         text=[fmt_compact(v) for v in t['total']], textposition='top center',
         textfont=dict(size=10, color=PALETTE["teal"]),
-        hovertemplate="Tahun %{x}: %{y:,.0f}<extra></extra>",
+        hovertemplate="Tahun %{x}: %{y:,.2f}<extra></extra>",
     ))
     apply_chart(trend_fig, height=340)
     trend_fig.update_layout(

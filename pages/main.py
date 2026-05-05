@@ -110,25 +110,29 @@ def render_main(year, level, prov, kab):
     ])
 
     # ── Multi-line trend ──────────────────────────────────────────────────────────
-    t_puk = trend_filter(df_puk, level, prov, kab).groupby('thn')['total'].sum().reset_index()
+    t_puk_full = trend_filter(df_puk, level, prov, kab).groupby('thn').sum(numeric_only=True).reset_index()
+    t_puk = t_puk_full[['thn', 'total']] if 'total' in t_puk_full.columns else pd.DataFrame(columns=['thn', 'total'])
     t_ak  = trend_filter(df_ak,  level, prov, kab).groupby('thn')['total'].sum().reset_index()
     t_pyb = trend_filter(df_pyb, level, prov, kab).groupby('thn')['total'].sum().reset_index()
     t_pt  = trend_filter(df_pt,  level, prov, kab).groupby('thn')['total'].sum().reset_index()
 
     trend_fig = go.Figure()
-    for df_t, name_t, color, dash in [
-        (t_puk, "PUK", "#AED6F1", "dot"),
-        (t_ak,  "AK",  PALETTE["sky"], "dot"),
-        (t_pyb, "Bekerja", PALETTE["blue"], "solid"),
-        (t_pt,  "Pengangguran", PALETTE["red"], "solid"),
+    for df_t, y_col, name_t, color, dash in [
+        (t_puk, "total", "PUK", "#AED6F1", "dot"),
+        (t_pyb, "total", "Bekerja", PALETTE["blue"], "solid"),
+        (t_pt,  "total", "Pengangguran", PALETTE["red"], "solid"),
+        (t_puk_full, "keg_sklh", "Sekolah", "#A5D6A7", "dash"),
+        (t_puk_full, "keg_mrt", "Mengurus RT", "#81C784", "dash"),
+        (t_puk_full, "keg_lain", "Lainnya", "#C8E6C9", "dash"),
     ]:
+        if y_col not in df_t.columns: continue
         trend_fig.add_trace(go.Scatter(
-            x=df_t['thn'], y=df_t['total'], name=name_t, mode='lines+markers',
+            x=df_t['thn'], y=df_t[y_col], name=name_t, mode='lines+markers',
             line=dict(color=color, width=2.5 if dash=="solid" else 1.8, dash=dash, shape='spline'),
             marker=dict(size=6, color=color),
             fill='tozeroy' if name_t == "Bekerja" else None,
             fillcolor='rgba(19,83,160,0.06)' if name_t == "Bekerja" else None,
-            hovertemplate=f"<b>{name_t}</b>: %{{y:,.0f}}<extra></extra>",
+            hovertemplate=f"<b>{name_t}</b>: %{{y:,.2f}}<extra></extra>",
         ))
     apply_chart(trend_fig, height=380)
     trend_fig.update_layout(
@@ -138,7 +142,6 @@ def render_main(year, level, prov, kab):
 
     # ── Historical Table ─────────────────────────────────────────────────────────
     years = sorted(df_puk['thn'].unique())
-    t_puk_full = trend_filter(df_puk, level, prov, kab).groupby('thn').sum(numeric_only=True).reset_index()
     
     def get_yearly_dict(df, val_col='total'):
         if df.empty or val_col not in df.columns: return {y: 0 for y in years}
@@ -157,8 +160,8 @@ def render_main(year, level, prov, kab):
     y_tpt  = {y: (y_pt.get(y,0) / y_ak.get(y,0) * 100) if y_ak.get(y,0) > 0 else 0 for y in years}
     y_epr  = {y: (y_pyb.get(y,0) / y_puk.get(y,0) * 100) if y_puk.get(y,0) > 0 else 0 for y in years}
 
-    def fmt_n(v): return f"{v:,.0f}" if v > 0 else "-"
-    def fmt_p(v): return f"{v:.1f}%" if v > 0 else "-"
+    def fmt_n(v): return f"{v:,.2f}" if v > 0 else "-"
+    def fmt_p(v): return f"{v:.2f}%" if v > 0 else "-"
 
     table_header = [
         html.Thead([
