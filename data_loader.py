@@ -210,3 +210,38 @@ _PROV_BOUNDS = {
     'Sumatera Utara': {'west': 97.06072998, 'east': 100.42276764, 'south': -0.63876051, 'north': 4.30146551},
     'Yogyakarta': {'west': 110.0139389, 'east': 110.83421326, 'south': -8.20357704, 'north': -7.54184151},
 }
+
+def expand_bounds(bounds, factor=3.0):
+    """Expand a bounding-box dict by `factor` in each direction (zoom-out effect).
+    factor=3.0 roughly equals 3-4 scroll-wheel zoom-out clicks."""
+    if bounds is None:
+        return None
+    lon_mid = (bounds['west'] + bounds['east']) / 2
+    lat_mid = (bounds['south'] + bounds['north']) / 2
+    half_w = (bounds['east'] - bounds['west']) / 2 * factor
+    half_h = (bounds['north'] - bounds['south']) / 2 * factor
+    return {
+        'west': lon_mid - half_w,
+        'east': lon_mid + half_w,
+        'south': lat_mid - half_h,
+        'north': lat_mid + half_h,
+    }
+
+import math
+
+def center_zoom_from_bounds(geo_prov, fallback_center=None, fallback_zoom=4.0):
+    """Compute an explicit center dict and zoom level from _PROV_BOUNDS.
+    More reliable than the Plotly `bounds` property on white-bg maps."""
+    b = _PROV_BOUNDS.get(geo_prov)
+    if b is None:
+        return (fallback_center or dict(lat=-2.5, lon=118)), fallback_zoom
+    center = dict(
+        lat=(b['south'] + b['north']) / 2,
+        lon=(b['west'] + b['east']) / 2,
+    )
+    lat_span = b['north'] - b['south']
+    lon_span = b['east'] - b['west']
+    max_span = max(lat_span, lon_span)
+    # Approximate zoom: each zoom level halves the visible span
+    zoom = max(1, 7.5 - math.log2(max(max_span, 0.01)))
+    return center, zoom

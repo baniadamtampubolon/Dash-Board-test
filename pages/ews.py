@@ -7,7 +7,7 @@ import plotly.graph_objects as go
 import pandas as pd
 
 from design import PALETTE, apply_chart
-from data_loader import load_data, load_geojson, load_geojson_kabkot, _PROV_NAME_TO_GEO, _PROV_NAME_TO_GEO_KABKOT, _KABKOT_NAME_TO_GEO, _PROV_BOUNDS, DATA_AVAILABLE
+from data_loader import load_data, load_geojson, load_geojson_kabkot, _PROV_NAME_TO_GEO, _PROV_NAME_TO_GEO_KABKOT, _KABKOT_NAME_TO_GEO, _PROV_BOUNDS, expand_bounds, center_zoom_from_bounds, DATA_AVAILABLE
 from components import section, fmt_compact
 
 
@@ -223,12 +223,18 @@ def _make_map(cfg, all_data, year, level, prov):
             thickness=10, len=0.5, x=0.98, tickfont=dict(size=9),
         ),
     ))
+    if level == 'nasional':
+        map_center = dict(lat=-2.5, lon=118)
+        map_zoom = 3.0
+    else:
+        map_center, map_zoom = center_zoom_from_bounds(geo_prov)
+        map_zoom = max(1, map_zoom + 0.5)  # zoom out a bit more for EWS compact view
+
     fig.update_layout(
         map=dict(
             style="white-bg", 
-            bounds=_PROV_BOUNDS.get(geo_prov) if level != 'nasional' else None,
-            center=dict(lat=-2.5, lon=118) if level == 'nasional' else None, 
-            zoom=3.2 if level == 'nasional' else None
+            center=map_center,
+            zoom=map_zoom,
         ),
         margin=dict(l=0, r=0, t=0, b=0), height=300,
         paper_bgcolor="rgba(0,0,0,0)",
@@ -329,8 +335,8 @@ def render_ews(year, level, prov, kab):
             dbc.RadioItems(
                 id="ews-sort",
                 options=[
-                    {"label": "10 Tertinggi", "value": "desc"},
-                    {"label": "10 Terendah", "value": "asc"},
+                    {"label": "10 Terendah", "value": "desc"},
+                    {"label": "10 Tertinggi", "value": "asc"},
                 ],
                 value="desc",
                 inline=True,

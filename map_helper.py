@@ -7,7 +7,7 @@ import plotly.graph_objects as go
 
 from design import PALETTE, apply_chart
 from components import kpi_card, section, fmt_compact
-from data_loader import load_geojson, load_geojson_kabkot, _PROV_NAME_TO_GEO, _PROV_NAME_TO_GEO_KABKOT, _KABKOT_NAME_TO_GEO, _PROV_BOUNDS
+from data_loader import load_geojson, load_geojson_kabkot, _PROV_NAME_TO_GEO, _PROV_NAME_TO_GEO_KABKOT, _KABKOT_NAME_TO_GEO, _PROV_BOUNDS, expand_bounds, center_zoom_from_bounds
 
 _GEOMAP_INDICATORS = {
     'PUK':  {'label': 'Penduduk Usia Kerja',       'unit': 'jiwa',  'is_ratio': False, 'col': 'total'},
@@ -92,12 +92,18 @@ def build_geomap_layout(df, year, level, prov, indicator_key):
         ),
     ))
 
+    if level == 'nasional':
+        map_center = dict(lat=-2.5, lon=118)
+        map_zoom = 4
+    else:
+        map_center, map_zoom = center_zoom_from_bounds(geo_prov)
+        map_zoom = map_zoom + 1
+
     map_fig.update_layout(
         map=dict(
             style="white-bg",
-            bounds=_PROV_BOUNDS.get(geo_prov) if level != 'nasional' else None,
-            center=dict(lat=-2.5, lon=118) if level == 'nasional' else None,
-            zoom=3.4 if level == 'nasional' else None,
+            center=map_center,
+            zoom=map_zoom,
         ),
         margin=dict(l=0, r=0, t=0, b=0),
         height=520,
