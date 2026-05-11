@@ -29,6 +29,7 @@ app = dash.Dash(
         dbc.themes.BOOTSTRAP,
         "https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap",
     ],
+    url_base_pathname='/dashboard_naker/',
     suppress_callback_exceptions=True,
     meta_tags=[{"name": "viewport", "content": "width=device-width, initial-scale=1"}],
 )

@@ -40,7 +40,7 @@ _EWS_INDICATORS = [
         'color': '#9B59B6', 'desc': 'TPAK Laki-laki − TPAK Perempuan', 'sort_asc': False,
     },
     {
-        'id': 'kualitas_pendidikan', 'name': 'Kualitas Pendidikan (SD)', 'icon': '📚',
+        'id': 'kualitas_pendidikan', 'name': 'Kualitas Pendidikan (PUK SD)', 'icon': '📚',
         'file': 'Database/PUK-2018-2025-ver2.xlsx', 'col': 'prop_sd',
         'unit': '%', 'is_ratio': True, 'compute': 'prop_sd',
         'color': PALETTE['indigo'], 'desc': 'PUK — Proporsi PUK SD per Total PUK', 'sort_asc': False,
@@ -52,13 +52,13 @@ _EWS_INDICATORS = [
         'color': PALETTE['blue'], 'desc': 'PT — Proporsi PT Universitas per Total PT', 'sort_asc': False,
     },
     {
-        'id': 'partisipasi_perempuan', 'name': 'Partisipasi Perempuan', 'icon': '👩',
+        'id': 'partisipasi_perempuan', 'name': 'TPAK Perempuan', 'icon': '👩',
         'file': 'Database/TPAK-2018-2025-ver2.xlsx', 'col': 'jk_pr',
         'unit': '%', 'is_ratio': True, 'compute': None,
         'color': '#E91E8C', 'desc': 'TPAK — Jenis Kelamin: Perempuan', 'sort_asc': True,
     },
     {
-        'id': 'partisipasi_muda', 'name': 'Partisipasi Pekerja Muda', 'icon': '🧑',
+        'id': 'partisipasi_muda', 'name': 'TPAK Usia Sekolah (15-19)', 'icon': '🧑',
         'file': 'Database/TPAK-2018-2025-ver2.xlsx', 'col': 'ku_1519',
         'unit': '%', 'is_ratio': True, 'compute': None,
         'color': PALETTE['sky'], 'desc': 'TPAK — Golongan Umur: 15–19', 'sort_asc': True,
